@@ -50,7 +50,7 @@ app.get('/api/data', (req, res) => {
 connection.on('error', (err) => {
     console.error('Database error: ', err);
 });
-let counter = 0;
+
 let resData = {}
 io.on('connection', (socket) => {
     //Обновление кол-ва участников
@@ -69,7 +69,28 @@ io.on('connection', (socket) => {
                 console.log('Field updated successfully!');
             }
         );
+        //Отправка кол-ва участников по всем пользователям
         io.emit('counterUpdated', resData); // Отправляем событие обновления счетчика всем клиентам
+    })
+    socket.on('updatePrice', (data)=>{
+        connection.query(`UPDATE houses_items SET price = ? WHERE id = ?`,
+            [data.price, data.id],
+            (err, results) => {
+                if (err) {
+                    console.error('Error updating field: ', err);
+                    return;
+                }
+                console.log('Field updated successfully!');
+            }
+        );
+        resData = {
+            id : data.id,
+            price: data.price,
+            isNew: false,
+            isStart : true,
+            isLoseText: true
+        }
+        socket.broadcast.emit('PriceUpdated', resData); // Отправляем событие обновления цены всем пользователям, кроме текущего
     })
 });
 

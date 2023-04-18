@@ -23,7 +23,7 @@
         </div>
         <div class="item-price">
           <span>Цена</span>
-          {{formatNumber(data.price)}}
+          {{formatNumber(currentPrice)}}
         </div>
         <div class="item-footer">
           <div class="item-time">
@@ -51,6 +51,7 @@
               {{activePeople}}
             </template>
 
+
           </div>
         </div>
       </div>
@@ -61,9 +62,36 @@
             <path d="M13 20.0002C13 24.0002 19.4999 28.8464 21.9999 31C24.4999 28.8464 31 24.0002 31 20.0002C31 17.0002 28.9999 15.0001 26.4999 15C24.4999 15.0002 22.9453 16.5142 21.9999 18.2593C21.0594 16.5231 19.4999 14.9999 17.4999 15C14.9999 15.0001 13 17.0002 13 20.0002Z" stroke="#0077E5" stroke-width="1.5" stroke-linejoin="round"/>
           </svg>
         </button>
-        <button class="btn w-100 btn-apply" @click="addCountPeople(data.id)">
-          Участвовать
-        </button>
+        <!-- Если еще не участвует-->
+        <template  v-if="isStepSecond && stepCount < 1">
+          <button class="btn w-100 btn-apply" @click="addCountPeople" >
+            Участвовать
+          </button>
+        </template>
+        <!-- участвует-->
+        <template  v-else>
+          <button class="btn w-100 btn-apply" @click="place" v-if="isStart == false">
+            Сделать ставку
+          </button>
+        </template>
+
+        <!--Участвует и делает ставку-->
+          <div class="d-flex flex-column" v-if="isStart && isWin == false">
+            <template v-if="isLoseText">
+              <span class="text-danger">
+                {{youLoseText}}
+              </span>
+            </template>
+            <div class="d-flex">
+              <input type="text" name="price" @input="addPrice($event , data.id)">
+              <button class="btn btn-primary" @click="updatePrice">OK</button>
+            </div>
+          </div>
+        <template v-if="isStart && isWin == true">
+          <div class="btn btn-dark">
+            Ваша ставка победная
+          </div>
+        </template>
       </div>
     </div>
   </div>
@@ -76,6 +104,7 @@ import { Pagination } from 'swiper'
 import 'swiper/css'
 import 'swiper/css/pagination'
 import noImg from '@/assets/no-img.jpg'
+import audioSrc  from '@/assets/sound/alert.mp3';
 export default {
   name: "house_item_vue",
 
@@ -91,23 +120,39 @@ export default {
   },
   data : ()=>{
     return{
+      audioSrc,
       imgsList : [],
       modules: [Pagination],
       date: '',
       noImg,
       activePeople :0,
       dataSocket: {},
-      componentId: 0
+      componentId: 0,
+      isStart : false,
+      currentPrice : 0,
+      price: 0,
+      isWin: true,
+      isStepSecond: true,
+      stepCount : 0,
+      youLoseText: 'Ваша ставка перебита',
+      isLoseText: false
     }
   },
   methods: {
-    addCountPeople(id){
+    place(){
+      this.isStart = true;
+    },
+    addCountPeople(){
+      this.isStepSecond = false
+      this.stepCount++
+      this.isWin = false
       this.activePeople += 1;
       this.dataSocket = {
-        id: id,
+        id: this.myId,
         count: this.activePeople,
       }
       this.$socket.emit('addPeople', this.dataSocket)
+
     },
     getImgUrl(pic) {
       return require('/upload/' + pic);
@@ -122,16 +167,38 @@ export default {
       // const seconds = dateObj.getUTCSeconds().toString().padStart(2, '0');
       this.date = `${day}: ${month}: ${year}г.`;
     },
+    addPrice(event){
+      this.price = event.target.value
+    },
+    updatePrice(){
+      if(this.price > this.currentPrice){
+        this.currentPrice = this.price;
+        this.dataSocket = {
+          id: this.myId,
+          price: this.price,
+        }
+        this.$socket.emit('updatePrice', this.dataSocket)
+        this.isWin = true
+      }else{
+        console.log('Ошибка число меньше')
+      }
+
+    },
     formatNumber(num) {
-      return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ") + ' ₸';
+      return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
     },
     activePeopleDB(){
       return this.activePeople = this.data.current_people
+    },
+    currentPriceDB(){
+      return this.currentPrice = this.data.price
     }
+
   },
   created(){
     this.formattedDate(),
-        this.activePeopleDB()
+    this.activePeopleDB(),
+        this.currentPriceDB()
   },
   computed: {
     myId() {
@@ -146,12 +213,38 @@ export default {
         this.activePeople = response.counter; // Обновляем счетчик в нашем компоненте Vue
       }
     });
+    this.$socket.on('PriceUpdated', (response) => { // Обработчик события обновления счетчика
+      if(this.myId === response.id){
+       this.currentPrice = response.price
+        this.isWin = false
+        this.isStepSecond = response.isNew
+        this.isStepSecond = response.isStart
+        this.isLoseText = response.isLoseText
+        let audio = new Audio(this.audioSrc);
+        audio.play()
+      }
+    });
   }
 
 }
 </script>
 
 <style lang="scss" scoped>
+  input{
+    width: 100%;
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 4px;
+    padding: 10px;
+    font-family: "Inter", sans-serif;
+    box-sizing: border-box;
+    outline: none;
+    border: none;
+    font-style: normal;
+    font-weight: 400;
+    font-size: 14px;
+    line-height: 24px;
+    color: rgba(51, 51, 51, 0.75);
+  }
   .item{
     display: flex;
     flex-direction: column;
