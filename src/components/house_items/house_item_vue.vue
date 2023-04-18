@@ -104,6 +104,7 @@ import { Pagination } from 'swiper'
 import 'swiper/css'
 import 'swiper/css/pagination'
 import noImg from '@/assets/no-img.jpg'
+
 import audioSrc  from '@/assets/sound/alert.mp3';
 export default {
   name: "house_item_vue",
@@ -220,8 +221,12 @@ export default {
         this.isStepSecond = response.isNew
         this.isStepSecond = response.isStart
         this.isLoseText = response.isLoseText
-        let audio = new Audio(this.audioSrc);
-        audio.play()
+        if(this.isStart && this.isWin == true){
+          console.log('play')
+          let audio = new Audio(this.audioSrc);
+          audio.play()
+        }
+
       }
     });
   }

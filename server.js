@@ -66,12 +66,13 @@ io.on('connection', (socket) => {
                     console.error('Error updating field: ', err);
                     return;
                 }
-                console.log('Field updated successfully!');
+                console.log('Field updated current People successfully!');
             }
         );
         //Отправка кол-ва участников по всем пользователям
         io.emit('counterUpdated', resData); // Отправляем событие обновления счетчика всем клиентам
     })
+    //Обновление цены лота
     socket.on('updatePrice', (data)=>{
         connection.query(`UPDATE houses_items SET price = ? WHERE id = ?`,
             [data.price, data.id],
@@ -80,7 +81,7 @@ io.on('connection', (socket) => {
                     console.error('Error updating field: ', err);
                     return;
                 }
-                console.log('Field updated successfully!');
+                console.log('Field updated Price successfully!');
             }
         );
         resData = {
@@ -90,7 +91,8 @@ io.on('connection', (socket) => {
             isStart : true,
             isLoseText: true
         }
-        socket.broadcast.emit('PriceUpdated', resData); // Отправляем событие обновления цены всем пользователям, кроме текущего
+        // Отправляем событие обновления цены всем пользователям, кроме текущего
+        socket.broadcast.emit('PriceUpdated', resData);
     })
 });
 
