@@ -1,18 +1,27 @@
 <template>
-  <div class="home">
-    <img alt="Vue logo" src="../assets/logo.png">
-    <HelloWorld msg="Welcome to Your Vue.js App"/>
-  </div>
+  <Banner_vue></Banner_vue>
+  <Filter_vue></Filter_vue>
+  <House_items_list_vue></House_items_list_vue>
 </template>
 
 <script>
-// @ is an alias to /src
-import HelloWorld from '@/components/HelloWorld.vue'
+
+import Banner_vue from "@/components/banner_vue";
+import Filter_vue from "@/components/fillter_vue";
+import House_items_list_vue from "@/components/house_items/house_items_list_vue";
 
 export default {
   name: 'HomeView',
   components: {
-    HelloWorld
-  }
+    House_items_list_vue,
+    Filter_vue,
+    Banner_vue,
+  },
+  created() {
+
+  },
+  mounted() {
+    this.$socket.emit("message", "Hello server!");
+  },
 }
 </script>
