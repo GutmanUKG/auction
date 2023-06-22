@@ -5,6 +5,11 @@ import store from './store'
 import socket from '../socket'
 import "bootstrap/dist/css/bootstrap.min.css"
 import "bootstrap"
+// Vuetify
 
 
-createApp(App).use(store).use(router).use(socket).mount('#app')
+import Vuetify from 'vuetify'
+import 'vuetify/dist/vuetify.min.css'
+
+
+createApp(App).use(store).use(router).use(socket).use(Vuetify).mount('#app')

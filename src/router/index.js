@@ -8,6 +8,21 @@ const routes = [
     component: HomeView
   },
   {
+    path: '/admin',
+    name: 'admin',
+    component: () => import('../views/Admin/AdminPanel')
+  },
+  {
+    path: '/dashboard',
+    name: 'DashboardPanel',
+    component: () => import('../views/Admin/DashboardPanel')
+  },
+  {
+    path: '/adminLots',
+    name: 'AdminLots',
+    component: () => import('../views/Admin/AdminLots')
+  },
+  {
     path: '/about',
     name: 'about',
     // route level code-splitting
