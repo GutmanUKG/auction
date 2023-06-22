@@ -32,21 +32,41 @@ connection.connect((err) => {
     console.log('Connected to database!');
 });
 
-app.get('/api/data', (req, res) => {
-    connection.query('SELECT * FROM houses_items', (err, results) => {
+app.get('/api/data/', (req, res) => {
+    const { start, end } = req.query;
+    const query = `SELECT * FROM houses_items LIMIT ${start}, ${end - start + 1}`;
+    console.log(start + ' start');
+    console.log(end + ' end')
+    connection.query(query, (err, results) => {
         if (err) {
             res.json(err);
+        } else {
+            results.forEach(item => {
+                if (item.slider_img !== '') {
+                    let newImageList = item.slider_img.split(/,\s*/);
+                    item.slider_img = newImageList;
+                }
+            });
+            res.json(results);
         }
-        results.forEach(item => {
-            if (item.slider_img != '') {
-                let newImageList = item.slider_img.split(/,\s*/)
-                item.slider_img = newImageList
-            }
-        })
-        res.json(results)
     });
 });
 
+app.get('/api/data/:id', (req, res) => {
+    const itemId = req.params.id;
+    console.log(itemId)
+    connection.query('SELECT * FROM `houses_items` WHERE id = ?', [itemId], (err, results) => {
+        if(err){
+            console.log(err)
+        }
+        if(results.length === 0){
+            console.log('не найдено')
+            return res.status(404).json({error: 'Элемент не найден'})
+        }
+        const item = results[0]
+        res.json(item)
+    })
+});
 connection.on('error', (err) => {
     console.error('Database error: ', err);
 });
@@ -89,9 +109,10 @@ io.on('connection', (socket) => {
             price: data.price,
             isNew: false,
             isStart : true,
-            isLoseText: true
+            isLoseText: true,
+            isShowLose: true
         }
-        // Отправляем событие обновления цены всем пользователям, кроме текущего
+        // Отправляем событие обновления цены всем пользователям, кроме обновившего
         socket.broadcast.emit('PriceUpdated', resData);
     })
 });

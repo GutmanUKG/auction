@@ -143,7 +143,7 @@ export default {
       this.showClearBtn = true
     },
     updateList(){
-      this.$store.commit('updateParamsFilter', this.paramsFilter);
+      console.log(this.paramsFilter)
     },
     updateSelectArea(area){
       this.showClearBtn = true;

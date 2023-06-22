@@ -1,5 +1,5 @@
 <template>
-  <div class="item col-3">
+  <div class="item col-lg-3 col-md-6 col-sm-12">
     <div class="item_slider" :id="myId">
       <div class="item-imgs-slider">
         <swiper class="swiper" :modules="modules" :pagination="{ clickable: true }" v-if="data.slider_img.length > 1">
@@ -74,22 +74,24 @@
             Сделать ставку
           </button>
         </template>
-
+       
         <!--Участвует и делает ставку-->
-          <div class="d-flex flex-column" v-if="isStart && isWin == false">
+          <div class="d-flex flex-column" v-if="isShowLose && isStart" style="width: 100%;">
             <template v-if="isLoseText">
-              <span class="text-danger">
+             
+              <div class="btn  btn-lose" @click="upperPrice">
                 {{youLoseText}}
-              </span>
+              </div>
             </template>
-            <div class="d-flex">
+          </div>
+          <div class="d-flex"  v-if="isShowInput">
               <input type="text" name="price" @input="addPrice($event , data.id)">
               <button class="btn btn-primary" @click="updatePrice">OK</button>
-            </div>
           </div>
+        
         <template v-if="isStart && isWin == true">
-          <div class="btn btn-dark">
-            Ваша ставка победная
+          <div class="btn  btn-win">
+            Ставка выигрывает!
           </div>
         </template>
       </div>
@@ -135,13 +137,18 @@ export default {
       isWin: true,
       isStepSecond: true,
       stepCount : 0,
-      youLoseText: 'Ваша ставка перебита',
-      isLoseText: false
+      youLoseText: 'Ставка перебита!',
+      isLoseText: false,
+      isShowLose: false,
+      isShowInput: false,
+
     }
   },
   methods: {
     place(){
       this.isStart = true;
+      this.isShowInput = true;
+      this.isShowLose = false
     },
     addCountPeople(){
       this.isStepSecond = false
@@ -172,18 +179,26 @@ export default {
       this.price = event.target.value
     },
     updatePrice(){
+      this.isShowInput = false
+      
       if(this.price > this.currentPrice){
         this.currentPrice = this.price;
         this.dataSocket = {
           id: this.myId,
           price: this.price,
+    
         }
         this.$socket.emit('updatePrice', this.dataSocket)
         this.isWin = true
+        
       }else{
         console.log('Ошибка число меньше')
       }
 
+    },
+    upperPrice(){
+        this.isShowInput = true,
+        this.isShowLose = false
     },
     formatNumber(num) {
       return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
@@ -221,6 +236,7 @@ export default {
         this.isStepSecond = response.isNew
         this.isStepSecond = response.isStart
         this.isLoseText = response.isLoseText
+        this.isShowLose = response.isShowLose
         if(this.isStart && this.isWin == true){
           console.log('play')
           let audio = new Audio(this.audioSrc);
@@ -363,5 +379,38 @@ export default {
       background: #0077E6;
       color: #FFFFFF;
     }
+
+   
   }
+  .btn-win{
+      display: flex;
+      padding: 10px 20px;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      flex: 1 0 0;
+      border-radius: 64px;
+      background: rgba(0, 187, 97, 0.25);
+      color: #00BD62;
+      &:hover{
+        background: rgba(0, 187, 97, 0.25);
+        color: #00BD62;
+      }
+    }
+    .btn-lose{
+      background: rgba(229, 83, 0, 0.25);
+      display: flex;
+      padding: 10px 20px;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      flex: 1 0 0;
+      color: #E55300;
+      &:hover{
+        color: #E55300;
+        background: rgba(229, 83, 0, 0.25);
+      }
+    }
 </style>

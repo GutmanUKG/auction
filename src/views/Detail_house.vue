@@ -1,46 +1,35 @@
 <template>
-  <h1>{{houseItem.name}}</h1>
-  <div class="row">
-    <div class="col-9">
-      <div class="item-imgs-slider">
-        <swiper class="swiper" v-if="houseItem.slider_img.length > 1">
-          <swiper-slide class="slide" :key="key" v-for="(item ,key) in houseItem.slider_img">
-            <img :src="getImgUrl(item)" :alt="name"  >
+  <div class="row" :id="detailHouse.id">
+    <div class="col-10">
+      <h1>
+        {{ detailHouse.name }}
+      </h1>
+      <template v-if="imgsList.length > 0">
+        <swiper class="swiper" v-if="imgsList.length > 1">
+          <swiper-slide class="slide"  v-for="(item,idx) in imgsList" :key="idx">
+            <img :src="getImgUrl(item)" :alt="detailHouse.name"  >
           </swiper-slide>
         </swiper>
-        <div class="item-img" v-else>
-          <img :src="noImg" alt="no image">
-        </div>
-      </div>
+      </template>
+    <template v-else>
+      <picture>
+        <img :src="noImg" alt="no image">
+      </picture>
+    </template>  
     </div>
-    <div class="col-3">
-      <div class="item">
-        Год : {{houseItem.year}}
-      </div>
-      <div class="item">
-        Цена : {{houseItem.price}}
-      </div>
-      <div class="item">
-        Местоположение : {{houseItem.city}} , {{houseItem.street}}
-      </div>
-      <div class="item">
-
-      </div>
-    </div>
-  </div>
-  <div class="row">
-    <div class="col-12">
-      {{houseItem.detail_text}}
+    <div class="col-2">
+      info
     </div>
   </div>
 </template>
 
 <script>
-import { mapGetters } from 'vuex';
-import { Swiper, SwiperSlide  } from 'swiper/vue';
+
+ import { Swiper, SwiperSlide  } from 'swiper/vue';
 import 'swiper/css'
 import 'swiper/css/pagination'
 import noImg from '@/assets/no-img.jpg'
+import {mapState} from "vuex";
 
 export default {
   name: "Detail_house",
@@ -49,15 +38,19 @@ export default {
     return{
       noImg,
       imgsList: [],
-      item: null
     }
   },
   methods: {
     getImgUrl(pic) {
-      return require('/upload/' + pic);
+       return require('/upload/' + pic);
     },
     setItem(item) {
       this.item = item;
+    },
+    splitString(str) {
+      let string = str;
+      let array = string.split(",\r\n");
+      return array
     }
   },
   components: {
@@ -65,20 +58,20 @@ export default {
     SwiperSlide,
   },
   computed: {
-    ...mapGetters(['getHouseItemById']),
-    houseItem() {
-      return this.getHouseItemById(this.id);
+    ...mapState(['detailHouse']),
+  },
+  
+  watch: {
+    'detailHouse.slider_img' : {
+      handler(newVal) {
+        this.imgsList = this.splitString(newVal);
+      }
     }
   },
   created() {
-    if (!this.houseItem) {
-      this.$store.dispatch('fetchRealEstate').then(() => {
-        this.item = this.getHouseItemById(this.id);
-      });
-    } else {
-      this.item = this.houseItem;
-    }
-  },
+    this.$store.dispatch('getHouseItemById', this.id);
+    
+  }
 }
 </script>
 
