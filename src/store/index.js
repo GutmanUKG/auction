@@ -1,6 +1,6 @@
 import { createStore } from 'vuex'
 // import {response} from "express";
-
+// import axios from "../axios";
 export default createStore({
   state: {
     houseItems : [],
@@ -10,13 +10,18 @@ export default createStore({
     batchSize: 10, // Количество элементов для загрузки
     start: 0,
     end: 9,
-    endList: false
+    endList: false,
+    user: {
+      data: null,
+      status: 'loading'
+    },
+    token: localStorage.getItem('token') || null
   },
   getters: {
     hasMoreItems(state) {
       return state.end < state.houseItems.length - 1;
     },
-
+    isAuthenticated: (state) => !!state.token,
   },
   mutations: {
 
@@ -38,6 +43,14 @@ export default createStore({
     },
     PUSH_DETAIL_PAGE(state, data){
       state.detailHouse = data;
+    },
+    SET_TOKEN(state, token){
+      state.token = token
+      localStorage.setItem('token', token)
+    },
+    SET_USER_INFO(state, data){
+      state.user.data = data;
+      state.user.status = 'loaded';
     }
   },
   actions: {
@@ -61,7 +74,6 @@ export default createStore({
             commit('SET_LOADING', false);
           });
     },
-
     updateVisibleItems({commit , state}){
       commit('UPDATE_VISIBLE_ITEMS');
       if(state.visibleItems.length === state.houseItems.length){
@@ -77,6 +89,12 @@ export default createStore({
           .then(data=>{
             this.state.detailHouse = data;
           })
+    },
+    login({commit}, token){
+      commit('SET_TOKEN', token)
+    },
+    user_info({commit}, data){
+      commit('SET_USER_INFO', data)
     }
   },
   modules: {

@@ -6,10 +6,17 @@ import socket from '../socket'
 import "bootstrap/dist/css/bootstrap.min.css"
 import "bootstrap"
 // Vuetify
+import 'vuetify/styles'
+
+import { createVuetify } from 'vuetify'
+import * as components from 'vuetify/components'
+import * as directives from 'vuetify/directives'
 
 
-import Vuetify from 'vuetify'
-import 'vuetify/dist/vuetify.min.css'
 
+const vuetify = createVuetify({
+    components,
+    directives,
+})
 
-createApp(App).use(store).use(router).use(socket).use(Vuetify).mount('#app')
+createApp(App).use(store).use(router).use(socket).use(vuetify).mount('#app')

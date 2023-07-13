@@ -9,7 +9,7 @@
 import Banner_vue from "@/components/banner_vue";
 import Filter_vue from "@/components/fillter_vue";
 import House_items_list_vue from "@/components/house_items/house_items_list_vue";
-
+import axios from "../axios";
 export default {
   name: 'HomeView',
   components: {
@@ -18,7 +18,8 @@ export default {
     Banner_vue,
   },
   created() {
-
+    axios.get('auth/me')
+    .then((data)=>console.log(data))
   },
   mounted() {
     this.$socket.emit("message", "Hello server!");
