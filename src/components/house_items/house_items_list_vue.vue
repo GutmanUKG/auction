@@ -4,7 +4,7 @@
   </template>
   <tempalte>
     <div class="house_item_list row d-flex align-items-end g-4">
-      <House_item_vue v-for="item in houseItems" :key="item.id" :data="item"></House_item_vue>
+      <House_item_vue v-for="item in houseItemsMongo" :key="item.id" :data="item"></House_item_vue>
     </div>
   </tempalte>
 </template>
@@ -21,10 +21,10 @@ export default {
       }
   },
   methods: {
-    ...mapActions(['loadItems', 'updateVisibleItems']),
+    ...mapActions(['loadItemsMongoDB', 'updateVisibleItems']),
     ...mapGetters(['hasMoreItems']),
     loadMoreItems() {
-      this.loadItems();
+      this.loadItemsMongoDB();
     },
     handleScroll(){
       const scrollPosition = window.innerHeight + window.scrollY;
@@ -38,10 +38,10 @@ export default {
   },
   created() {
     this.loadMoreItems();
-    window.addEventListener('scroll', this.handleScroll);
+    // window.addEventListener('scroll', this.handleScroll);
   },
   computed: {
-    ...mapState(['houseItems', 'visibleItems', 'isLoading']),
+    ...mapState(['houseItemsMongo', 'visibleItems', 'isLoading']),
   },
   mounted() {
 

@@ -30,6 +30,30 @@ const houseSchema = new mongoose.Schema(
             type: Array,
             default: []
         },
+        mainImage: {
+            type: String,
+            default: ''
+        },
+        country: {
+            type:String,
+            default: '',
+            required: true,
+        },
+        city: {
+            type:String,
+            default: '',
+            required: true,
+        },
+        area: {
+            type: Number,
+            default: '',
+            required: true,
+        },
+        countRoom: {
+            type: Number,
+            default: '',
+            required: true,
+        },
         viewsCount: {
             type: Number,
             default: 0,

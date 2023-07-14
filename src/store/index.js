@@ -1,8 +1,9 @@
 import { createStore } from 'vuex'
 // import {response} from "express";
-// import axios from "../axios";
+ import axios from "../axios";
 export default createStore({
   state: {
+    houseItemsMongo: [],
     houseItems : [],
     detailHouse: [],
     isLoading: false,
@@ -12,7 +13,7 @@ export default createStore({
     end: 9,
     endList: false,
     user: {
-      data: null,
+      data: [localStorage.getItem('user-info') || null],
       status: 'loading'
     },
     token: localStorage.getItem('token') || null
@@ -24,7 +25,9 @@ export default createStore({
     isAuthenticated: (state) => !!state.token,
   },
   mutations: {
-
+    PUSH_ITEMS_MONGO(state, data){
+      state.houseItemsMongo = state.houseItemsMongo.concat(data);
+    },
     setHouseItems(state, data) {
       state.houseItems = data;
     },
@@ -51,9 +54,25 @@ export default createStore({
     SET_USER_INFO(state, data){
       state.user.data = data;
       state.user.status = 'loaded';
+      localStorage.setItem('user-info', data)
     }
   },
   actions: {
+    loadItemsMongoDB({ commit }){
+      commit('SET_LOADING', true);
+      axios('/lots', {
+        method: 'GET'
+      })
+          .then((res) => {
+            commit('PUSH_ITEMS_MONGO', res.data);
+            commit('SET_LOADING', false);
+          })
+
+          .catch(error => {
+            console.error('Ошибка при загрузке данных:', error);
+            commit('SET_LOADING', false);
+          });
+    },
     loadItems({ commit, state }) {
       // if (state.isLoading || !state.hasMoreItems) return;
       commit('SET_LOADING', true);
