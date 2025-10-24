@@ -27,7 +27,8 @@
         </div>
       </div>
       <div v-show="!isAuthenticated">
-        <button v-if="!isShowLogin" @click="showLoginForm">Войти</button> /  <button v-if="!isShowRegister" @click="showLoginForm">Войти</button> /
+        <button v-if="!isShowLogin" @click="showLoginForm">Войти</button>
+        <button v-if="!isShowRegister" @click="showLoginForm">Войти</button> /
       </div>
     </div>
     <Login_user v-if="isShowLogin && !isAuthenticated" ></Login_user>
