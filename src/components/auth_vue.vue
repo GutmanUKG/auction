@@ -27,30 +27,62 @@
         </div>
       </div>
       <div v-show="!isAuthenticated">
-        <button v-if="!isShowLogin" @click="showLoginForm">Войти</button>
-        <button v-if="!isShowRegister" @click="showLoginForm">Войти</button> /
+
+        <button  @click="showLoginForm" class="snap-target">Войти</button> /
+
+        <button v-if="!isShowRegister" @click="showRegiserForm">Регистрация</button>
       </div>
     </div>
-    <Login_user v-if="isShowLogin && !isAuthenticated" ></Login_user>
+
+
+    <Login_user v-model="isVisible" @showLoginForm="handleClose" />
+
+
+    <Register_user    v-if="isShowRegister && isRegistered == false"  @registered="handleRegistered" @showLoginForm="handleClose"></Register_user>
+
+
+
+
+    <ThanosTransition v-model="isVisible">
+      <button @click="isVisible = !isVisible">click</button>
+    </ThanosTransition>
+
+
   </div>
 
 </template>
 
 <script>
 import Login_user from "@/components/login_user";
+import Register_user from "@/components/register_user";
+import ThanosTransition from "@/components/Thanos_transition.vue";
+
 export default {
   name: "auth_vue",
   data: () => {
     return {
       isShowLogin: false,
       showPopup: false,
-      isShowRegister: true
+      isShowRegister: false,
+      isRegistered: false,
+      isVisible: true
     }
 
   },
   methods: {
     showLoginForm(){
       this.isShowLogin = !this.isShowLogin
+
+    },
+    showRegiserForm(){
+      this.isShowRegister = !this.isShowRegister
+    },
+    handleRegistered(status) {
+      this.isRegistered = status;
+    },
+    handleClose(status) {
+      this.isShowLogin = status
+      this.isShowRegister = status
     },
     logout(){
       const token = ''
@@ -73,7 +105,7 @@ export default {
   watch: {
 
   },
-  components: {Login_user}
+  components: {ThanosTransition, Login_user, Register_user}
 }
 </script>
 
@@ -152,4 +184,6 @@ export default {
      gap: 10px;
    }
   }
+
+
 </style>

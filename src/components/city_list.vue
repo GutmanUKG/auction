@@ -1,5 +1,6 @@
 <template>
-    <div class="city_list">
+  <div class="city_list">
+
       <div class="city_list-current">
         <div class="city_list-wrapper">
           <div class="city-name" @click="showList(1)">
@@ -37,14 +38,17 @@
 
 <script>
 import iconGeo from '@/assets/icns/MapPin.svg'
+
 export default {
   name: "city_list",
+  components: {},
   data: ()=>{
     return {
       currentCity: "Алматы",
       currentStreet : "Бостандыкский р-н",
       step: 0,
-      iconGeo
+      iconGeo,
+
     }
   },
   methods:{
@@ -67,6 +71,17 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+.victim {
+  padding: 20px;
+  background: #0077e6;
+  color: white;
+  border-radius: 12px;
+  display: inline-block;
+  cursor: pointer;
+}
+.disintegration-container{
+  background: red;
+}
   .city_list{
     cursor: pointer;
     position: relative;

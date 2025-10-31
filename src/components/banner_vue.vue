@@ -14,15 +14,19 @@
       <img :src="banner" alt="banner">
     </div>
   </div>
+
 </template>
 
 <script>
 import banner from '@/assets/main_img.png'
+
 export default {
   name: "banner_vue",
+  components: {},
   data: ()=>{
     return{
-      banner
+      banner,
+      showBlock: true
     }
   }
 }

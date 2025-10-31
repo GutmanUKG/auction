@@ -8,7 +8,7 @@ const server = http.createServer(app);
 const { Server } = require("socket.io");
 const io = require('socket.io')(server, {
     cors: {
-        origin: 'http://localhost:8080',
+        origin: 'http://localhost:3000',
         methods: ['GET', 'POST']
     }
 });
@@ -20,7 +20,7 @@ const connection = mysql.createConnection({
     host: '127.0.0.1',
     user: 'root',
     password: '',
-    database: 'dom_tvoy',
+    database: 'auction_db',
     port: 3306
 });
 

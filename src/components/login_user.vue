@@ -1,41 +1,75 @@
 <template>
-
-  <form @submit.prevent="login" class="login_form">
-    <h2>Авторизация</h2>
-    <input type="text" v-model="email" name="email" placeholder="email" required>
-    <input type="password" v-model="password" name="password" placeholder="Password" required>
-    <button type="submit" >Войти</button>
-  </form>
-
-
+      <form @submit.prevent="login" class="login_form">
+        <div class="close" @click="closeForm">Close</div>
+        <h2>Авторизация</h2>
+        {{isVisible}}
+        <input type="text" v-model="email" name="email" placeholder="email" required>
+        <input type="password" v-model="password" name="password" placeholder="Password" required>
+        <button type="submit" >Войти</button>
+      </form>
 </template>
 
 <script>
 import axios from "../axios";
+
+
 export default {
   name: "login_user",
+  components: {},
+  emits: ['showLoginForm'],
+  props : {
+    isVisible: {
+      type: Boolean,
+      required: false,
+
+    },
+  },
+
   data(){
     return{
       email: '',
-      password: ''
+      password: '',
     }
   },
   methods: {
-    login(){
+    login() {
       axios.post('/auth/login', {
-          email: this.email,
-          password: this.password
+        email: this.email,
+        password: this.password
       })
-      .then((res)=> {
-        console.log(res)
-        const token = res.data.token
-        this.$store.dispatch('login', token);
-        this.$store.dispatch('user_info', res.data);
-      })
-      .catch(err => {
-        console.log(err)
-      })
+          .then((res) => {
+            console.log(res)
+            const token = res.data.token
+            this.$store.dispatch('login', token);
+            this.$store.dispatch('user_info', res.data);
+          })
+          .catch(err => {
+            console.log(err)
+          })
     },
+    closeForm() {
+      this.$emit('showLoginForm', false);
+    },
+    snapAndHide() {
+      const target = this.$el; // вся форма
+      if (target) {
+        import('@/directives/v-thanos.js').then(({disintegrate}) => {
+          disintegrate(target);
+          // Примерно через 1.5 секунды удалим DOM (или спрячем через emit)
+          setTimeout(() => {
+            this.$emit('showLoginForm', false);
+          }, 1500);
+        });
+      }
+    },
+  },
+  watch: {
+    isVisible(newVal) {
+      if (!newVal) {
+        // запустить анимацию
+        this.snapAndHide();
+      }
+    }
   }
 }
 </script>

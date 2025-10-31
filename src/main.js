@@ -3,6 +3,7 @@ import App from './App.vue'
 import router from './router'
 import store from './store'
 import socket from '../socket'
+import ThanosDirective from './directives/v-thanos.js';
 import "bootstrap/dist/css/bootstrap.min.css"
 import "bootstrap"
 // Vuetify
@@ -20,4 +21,4 @@ const vuetify = createVuetify({
 
 
 
-createApp(App).use(store).use(router).use(socket).use(vuetify).mount('#app')
+createApp(App).use(store).use(router).use(socket).use(vuetify).directive('thanos', ThanosDirective).mount('#app')
