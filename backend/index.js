@@ -1,6 +1,5 @@
 import express from 'express';
-//MongoDb
-import mongoose from 'mongoose';
+
 //Загрузка изображений
 import multer from 'multer'
 //Библиотека для разрешения запросов по портам
@@ -13,11 +12,15 @@ import { handleValidationErrors, checkAuth } from './utils/index.js'
 import { registerValidation , loginValidation } from './validations/auth.js';
 
 import { itemCreateValidation } from './validations/addItem.js'
+import sequelize from './db.js';
 
 
-mongoose.connect('mongodb+srv://admin:Asd67mnb@cluster0.akgrwpz.mongodb.net/domtvoy?retryWrites=true&w=majority')
-    .then(()=>{console.log("DB connect")})
-    .catch((err) => {console.log('DB Connect Error' , err)})
+
+sequelize.sync({ alter: true })  // или { force: true } если хочешь пересоздавать таблицы
+    .then(() => console.log('MySQL подключён'))
+    .catch(err => console.error('Ошибка подключения к MySQL:', err));
+
+
 
 const app = express();
 app.use(express.json());

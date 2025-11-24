@@ -3,7 +3,7 @@
   <form @submit.prevent="login" class="login_form">
     <h2>Авторизация</h2>
     <input type="text" v-model="email" name="email" placeholder="email" required>
-    <input type="password" v-model="password" name="password" placeholder="Password" required>
+    <input type="password" v-model="password" name="password" placeholder="Password" >
     <button type="submit" >Войти</button>
   </form>
 
