@@ -51,8 +51,5 @@ module.exports = defineConfig({
   parallel: require('os').cpus().length > 1,
 
   // Кеширование для ускорения повторных сборок
-  cache: {
-    type: 'filesystem',
-    cacheDirectory: './node_modules/.cache/vue-cli'
-  }
+ 
 })
