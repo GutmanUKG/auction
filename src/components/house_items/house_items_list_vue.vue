@@ -2,11 +2,12 @@
   <template v-if="isLoading">
     Загрузка...
   </template>
-  <tempalte>
+  <template v-else>
+   
     <div class="house_item_list row d-flex align-items-end g-4">
       <House_item_vue v-for="item in houseItemsMongo" :key="item.id" :data="item"></House_item_vue>
     </div>
-  </tempalte>
+  </template>
 </template>
 
 <script>

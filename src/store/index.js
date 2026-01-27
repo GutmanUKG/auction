@@ -60,7 +60,7 @@ export default createStore({
   actions: {
     loadItemsMongoDB({ commit }){
       commit('SET_LOADING', true);
-      axios('/lots', {
+      axios('/houses', {
         method: 'GET'
       })
           .then((res) => {

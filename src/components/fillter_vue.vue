@@ -55,10 +55,10 @@
           </div>
        </div>
       <div class="col-3">
-        <Selector_vue title="Площадь, м2" min="120" type="м2" max="560" @areaChange="updateSelectArea"></Selector_vue>
+        <Selector_vue title="Площадь, м2" :min="120" type="м2" :max="560" @areaChange="updateSelectArea"></Selector_vue>
       </div>
        <div class="col-4">
-         <Selector_vue title="Цена, ₸ " min="5000000" max="13000000" type="₸"  @areaChange="updateSelectPrice"></Selector_vue>
+         <Selector_vue title="Цена, ₸ " :min="5000000" :max="13000000" type="₸"  @areaChange="updateSelectPrice"></Selector_vue>
        </div>
      </div>
     <div class="filter_footer row align-center d-flex">

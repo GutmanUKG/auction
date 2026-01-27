@@ -35,7 +35,7 @@
     </div>
 
 
-    <Login_user v-model="isVisible" @showLoginForm="handleClose" />
+    <Login_user v-model="isVisible" @showLoginForm="handleClose" v-show="isShowLogin" />
 
 
     <Register_user    v-if="isShowRegister && isRegistered == false"  @registered="handleRegistered" @showLoginForm="handleClose"></Register_user>
@@ -43,9 +43,6 @@
 
 
 
-    <ThanosTransition v-model="isVisible">
-      <button @click="isVisible = !isVisible">click</button>
-    </ThanosTransition>
 
 
   </div>
@@ -55,7 +52,7 @@
 <script>
 import Login_user from "@/components/login_user";
 import Register_user from "@/components/register_user";
-import ThanosTransition from "@/components/Thanos_transition.vue";
+//import ThanosTransition from "@/components/Thanos_transition.vue";
 
 export default {
   name: "auth_vue",
@@ -71,8 +68,11 @@ export default {
   },
   methods: {
     showLoginForm(){
+      console.log('click');
+      
       this.isShowLogin = !this.isShowLogin
-
+      console.log(this.isShowLogin);
+      
     },
     showRegiserForm(){
       this.isShowRegister = !this.isShowRegister
@@ -105,7 +105,9 @@ export default {
   watch: {
 
   },
-  components: {ThanosTransition, Login_user, Register_user}
+  components: {
+    //ThanosTransition,
+     Login_user, Register_user}
 }
 </script>
 

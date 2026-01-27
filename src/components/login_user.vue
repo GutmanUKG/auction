@@ -48,6 +48,7 @@ export default {
           })
     },
     closeForm() {
+    
       this.$emit('showLoginForm', false);
     },
     snapAndHide() {
