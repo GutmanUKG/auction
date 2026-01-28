@@ -56,9 +56,11 @@
 **Обновленные компоненты:**
 - ✅ `src/components/selector_vue.vue`
 - ✅ `src/components/house_items/house_item_vue.vue`
-- ✅ `src/views/Admin/AdminPanel.vue`
-- ✅ `src/views/Admin/AdminLots.vue`
-- ✅ `src/views/Admin/DashboardPanel.vue`
+- ✅ `src/views/Admin/AdminPanel.vue` ⚠️ (будет удален в Фазе 4)
+- ✅ `src/views/Admin/AdminLots.vue` ⚠️ (будет удален в Фазе 4)
+- ✅ `src/views/Admin/DashboardPanel.vue` ⚠️ (будет удален в Фазе 4)
+
+**⚠️ Примечание:** Файлы админ-панели были обновлены для использования общих утилит, но в Фазе 4 будут полностью удалены и пересозданы с нуля, так как текущая реализация не соответствует требованиям.
 
 **Результат:** Устранено дублирование кода (~50 строк)
 
@@ -66,38 +68,73 @@
 
 ## 📋 Оставшиеся фазы (4-7)
 
-### ФАЗА 4: Создание AdminLayout компонента 📐
+### ФАЗА 4: Создание админ-панели с нуля 🎛️
 
-**Цель:** Устранить дублирование layout кода в 3 админ-компонентах
+**⚠️ ВАЖНО:** Существующие файлы админ-панели были созданы вручную для тестирования и сейчас не нужны. Необходимо создать новую админ-панель с нуля.
 
-#### Шаг 4.1: Создать компонент AdminLayout
+**Контекст:**
+- ✅ Функционал добавления лотов уже реализован и работает
+- ❌ Отсутствует функционал редактирования лотов
+- ❌ Отсутствует функционал удаления лотов
+- 🎯 Цель: Создать простую, но функциональную админ-панель
+
+#### Шаг 4.1: Удалить старые файлы админ-панели
+
+**Файлы для удаления:**
+```bash
+rm src/views/Admin/AdminPanel.vue
+rm src/views/Admin/AdminLots.vue
+rm src/views/Admin/DashboardPanel.vue
+```
+
+**⚠️ Проверить router/index.js:**
+- Найти все роуты, использующие эти компоненты
+- Закомментировать или удалить временно (восстановим в следующих шагах)
+
+#### Шаг 4.2: Создать базовый Layout для админ-панели
+
 **Создать файл:** `src/layouts/AdminLayout.vue`
 
-**Структура компонента:**
+**Требования:**
+- Боковое меню с навигацией
+- Простой и чистый дизайн
+- Логотип и ссылка на главную страницу
+- Основные разделы:
+  - Dashboard (статистика)
+  - Управление лотами (Lots Management)
+  - Профиль пользователя (опционально)
+
+**Структура:**
 ```vue
 <template>
-  <div class="row admin-layout">
-    <div class="col-2 items-list">
-      <a href="/" class="logo">
-        <picture>
-          <img :src="getImgUrl('logo.svg')" alt="">
-        </picture>
-      </a>
-      <ul class="menu-list">
-        <li>
-          <router-link to="/admin">Dashboard</router-link>
-        </li>
-        <li>
-          <router-link to="/dashboard">User Profile</router-link>
-        </li>
-        <li>
-          <router-link to="/adminLots">Lots</router-link>
-        </li>
-      </ul>
-    </div>
-    <div class="col-10 admin-content">
+  <div class="admin-wrapper">
+    <aside class="admin-sidebar">
+      <!-- Логотип -->
+      <div class="admin-logo">
+        <router-link to="/">
+          <img :src="getImgUrl('logo.svg')" alt="Logo">
+        </router-link>
+      </div>
+
+      <!-- Навигация -->
+      <nav class="admin-nav">
+        <router-link to="/admin/dashboard" class="nav-item">
+          📊 Dashboard
+        </router-link>
+        <router-link to="/admin/lots" class="nav-item">
+          🏘️ Управление лотами
+        </router-link>
+      </nav>
+
+      <!-- Выход -->
+      <div class="admin-footer">
+        <button @click="logout">Выйти</button>
+      </div>
+    </aside>
+
+    <main class="admin-content">
       <slot></slot>
-    </div>
+    </main>
   </div>
 </template>
 
@@ -107,43 +144,62 @@ import { getImgUrl } from '@/utils/helpers'
 export default {
   name: 'AdminLayout',
   methods: {
-    getImgUrl
+    getImgUrl,
+    logout() {
+      this.$store.dispatch('logout')
+      this.$router.push('/')
+    }
   }
 }
 </script>
 
-<style lang="scss" scoped>
-/* Перенести общие стили из админ-панелей */
-.admin-layout {
-  /* ... стили ... */
+<style scoped>
+/* Простые стили для админ-панели */
+.admin-wrapper {
+  display: flex;
+  min-height: 100vh;
 }
 
-.menu-list {
-  /* ... стили меню ... */
+.admin-sidebar {
+  width: 250px;
+  background: #2c3e50;
+  color: white;
+  display: flex;
+  flex-direction: column;
 }
+
+.admin-content {
+  flex: 1;
+  padding: 20px;
+  background: #f5f5f5;
+}
+
+/* Дополнительные стили... */
 </style>
 ```
 
-#### Шаг 4.2: Обновить админ-компоненты
+#### Шаг 4.3: Создать страницу Dashboard
 
-**Файлы для изменения:**
-1. `src/views/Admin/AdminPanel.vue`
-2. `src/views/Admin/DashboardPanel.vue`
-3. `src/views/Admin/AdminLots.vue`
+**Создать файл:** `src/views/Admin/AdminDashboard.vue`
 
-**Что делать:**
-- Импортировать AdminLayout
-- Обернуть содержимое в `<AdminLayout>`
-- Удалить дублирующийся код боковой навигации
-- Удалить дублирующиеся стили
+**Функционал:**
+- Простая статистика (количество лотов, новые лоты за неделю и т.д.)
+- Можно сделать простые карточки с цифрами
 
 **Пример:**
 ```vue
 <template>
   <AdminLayout>
-    <!-- Только уникальный контент страницы -->
-    <div>
-      Контент админ-панели
+    <h1>Dashboard</h1>
+    <div class="stats-grid">
+      <div class="stat-card">
+        <h3>Всего лотов</h3>
+        <p class="stat-number">{{ totalLots }}</p>
+      </div>
+      <div class="stat-card">
+        <h3>Активных лотов</h3>
+        <p class="stat-number">{{ activeLots }}</p>
+      </div>
     </div>
   </AdminLayout>
 </template>
@@ -152,19 +208,320 @@ export default {
 import AdminLayout from '@/layouts/AdminLayout.vue'
 
 export default {
-  components: { AdminLayout }
+  name: 'AdminDashboard',
+  components: { AdminLayout },
+  data() {
+    return {
+      totalLots: 0,
+      activeLots: 0
+    }
+  },
+  mounted() {
+    this.loadStats()
+  },
+  methods: {
+    async loadStats() {
+      // Загрузка статистики через API
+    }
+  }
 }
 </script>
 ```
 
-**Проверка:**
-- [ ] Все 3 админ-страницы загружаются
-- [ ] Навигация между страницами работает
-- [ ] Стили применяются корректно
+#### Шаг 4.4: Создать компонент управления лотами
 
-**Коммит:**
+**Создать файл:** `src/views/Admin/AdminLots.vue`
+
+**Функционал:**
+- Список всех лотов в виде таблицы
+- Кнопка "Добавить лот" (переход на существующую страницу добавления)
+- Кнопка "Редактировать" для каждого лота
+- Кнопка "Удалить" для каждого лота
+- Пагинация (опционально)
+
+**Структура:**
+```vue
+<template>
+  <AdminLayout>
+    <div class="lots-header">
+      <h1>Управление лотами</h1>
+      <router-link to="/create-house" class="btn-add">
+        ➕ Добавить лот
+      </router-link>
+    </div>
+
+    <div class="lots-table">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Название</th>
+            <th>Город</th>
+            <th>Цена</th>
+            <th>Статус</th>
+            <th>Действия</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="lot in lots" :key="lot.id">
+            <td>{{ lot.id }}</td>
+            <td>{{ lot.title }}</td>
+            <td>{{ lot.city }}</td>
+            <td>{{ formatPrice(lot.price) }}</td>
+            <td>{{ lot.isActive ? 'Активен' : 'Неактивен' }}</td>
+            <td class="actions">
+              <button @click="editLot(lot.id)" class="btn-edit">✏️</button>
+              <button @click="deleteLot(lot.id)" class="btn-delete">🗑️</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </AdminLayout>
+</template>
+
+<script>
+import AdminLayout from '@/layouts/AdminLayout.vue'
+import { formatNumber } from '@/utils/helpers'
+
+export default {
+  name: 'AdminLots',
+  components: { AdminLayout },
+  data() {
+    return {
+      lots: []
+    }
+  },
+  mounted() {
+    this.loadLots()
+  },
+  methods: {
+    async loadLots() {
+      // Загрузка лотов через API
+    },
+    formatPrice(price) {
+      return formatNumber(price, '₸')
+    },
+    editLot(id) {
+      // Переход на страницу редактирования (создать в шаге 4.5)
+      this.$router.push(`/admin/lots/${id}/edit`)
+    },
+    async deleteLot(id) {
+      if (confirm('Удалить этот лот?')) {
+        // API запрос на удаление
+      }
+    }
+  }
+}
+</script>
+```
+
+#### Шаг 4.5: Создать компонент редактирования лота
+
+**Создать файл:** `src/views/Admin/EditLot.vue`
+
+**Требования:**
+- Форма, аналогичная форме создания лота
+- Предзаполнение полей существующими данными
+- Кнопка "Сохранить изменения"
+- Кнопка "Отмена" (возврат к списку)
+
+**⚠️ ВАЖНО:** Можно переиспользовать компоненты из формы создания лота (`/create-house`)
+
+**Структура:**
+```vue
+<template>
+  <AdminLayout>
+    <div class="edit-lot-header">
+      <h1>Редактирование лота #{{ lotId }}</h1>
+      <button @click="goBack" class="btn-back">← Назад</button>
+    </div>
+
+    <form @submit.prevent="saveLot" class="lot-form">
+      <!-- Поля формы (аналогично create-house) -->
+      <div class="form-group">
+        <label>Название</label>
+        <input v-model="lot.title" required>
+      </div>
+
+      <!-- Остальные поля... -->
+
+      <div class="form-actions">
+        <button type="submit" class="btn-save">💾 Сохранить</button>
+        <button type="button" @click="goBack" class="btn-cancel">Отмена</button>
+      </div>
+    </form>
+  </AdminLayout>
+</template>
+
+<script>
+import AdminLayout from '@/layouts/AdminLayout.vue'
+
+export default {
+  name: 'EditLot',
+  components: { AdminLayout },
+  data() {
+    return {
+      lotId: this.$route.params.id,
+      lot: {}
+    }
+  },
+  mounted() {
+    this.loadLot()
+  },
+  methods: {
+    async loadLot() {
+      // Загрузка данных лота через API
+    },
+    async saveLot() {
+      // API запрос на обновление лота
+      // После успешного сохранения - возврат к списку
+      this.$router.push('/admin/lots')
+    },
+    goBack() {
+      this.$router.push('/admin/lots')
+    }
+  }
+}
+</script>
+```
+
+#### Шаг 4.6: Обновить роуты
+
+**Файл:** `src/router/index.js`
+
+**Добавить новые роуты:**
+```javascript
+{
+  path: '/admin',
+  redirect: '/admin/dashboard',
+  meta: { requiresAuth: true, requiresAdmin: true }
+},
+{
+  path: '/admin/dashboard',
+  name: 'AdminDashboard',
+  component: () => import('@/views/Admin/AdminDashboard.vue'),
+  meta: { requiresAuth: true, requiresAdmin: true }
+},
+{
+  path: '/admin/lots',
+  name: 'AdminLots',
+  component: () => import('@/views/Admin/AdminLots.vue'),
+  meta: { requiresAuth: true, requiresAdmin: true }
+},
+{
+  path: '/admin/lots/:id/edit',
+  name: 'EditLot',
+  component: () => import('@/views/Admin/EditLot.vue'),
+  meta: { requiresAuth: true, requiresAdmin: true }
+}
+```
+
+#### Шаг 4.7: Backend API для редактирования и удаления
+
+**⚠️ ПРОВЕРИТЬ:** Есть ли уже эти endpoint'ы в backend?
+
+**Необходимые endpoint'ы:**
+```javascript
+// PUT /api/houses/:id - обновление лота
+// DELETE /api/houses/:id - удаление лота
+// GET /api/admin/stats - статистика для dashboard
+```
+
+**Если endpoint'ов нет, добавить в:** `backend/controllers/HouseController.js`
+
+```javascript
+// Обновление лота
+export async function updateHouse(req, res) {
+  try {
+    const { id } = req.params
+    const updateData = req.body
+
+    await db('houses')
+      .where({ id })
+      .update(updateData)
+
+    res.json({ success: true, message: 'Лот обновлен' })
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message })
+  }
+}
+
+// Удаление лота
+export async function deleteHouse(req, res) {
+  try {
+    const { id } = req.params
+
+    await db('houses')
+      .where({ id })
+      .del()
+
+    res.json({ success: true, message: 'Лот удален' })
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message })
+  }
+}
+
+// Статистика для dashboard
+export async function getAdminStats(req, res) {
+  try {
+    const totalLots = await db('houses').count('* as count').first()
+    const activeLots = await db('houses').where({ isActive: true }).count('* as count').first()
+
+    res.json({
+      totalLots: totalLots.count,
+      activeLots: activeLots.count
+    })
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message })
+  }
+}
+```
+
+**Добавить роуты в:** `backend/routes/houses.js`
+
+```javascript
+import adminAuth from '../middleware/adminAuth.js'
+
+// Защищенные роуты для админов
+router.put('/:id', auth, adminAuth, updateHouse)
+router.delete('/:id', auth, adminAuth, deleteHouse)
+router.get('/admin/stats', auth, adminAuth, getAdminStats)
+```
+
+#### Проверка после Фазы 4:
+- [ ] Старые файлы админ-панели удалены
+- [ ] AdminLayout компонент создан и работает
+- [ ] Dashboard отображается и показывает статистику
+- [ ] Список лотов загружается и отображается
+- [ ] Кнопка "Редактировать" открывает форму редактирования
+- [ ] Форма редактирования загружает данные лота
+- [ ] Сохранение изменений работает
+- [ ] Кнопка "Удалить" удаляет лот (с подтверждением)
+- [ ] Backend API endpoint'ы работают
+- [ ] Навигация между разделами админ-панели работает
+- [ ] Админ-панель недоступна для обычных пользователей
+
+**Коммиты:**
 ```bash
-git commit -m "feat(layouts): create AdminLayout component
+git commit -m "feat(admin): create new admin panel from scratch
+
+- Remove old admin panel files
+- Create AdminLayout component
+- Add AdminDashboard with statistics
+- Add AdminLots with table view
+- Add EditLot component for editing lots
+- Add delete functionality
+- Update routes for new admin panel
+
+Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
+
+git commit -m "feat(backend): add admin API endpoints
+
+- Add updateHouse endpoint (PUT /api/houses/:id)
+- Add deleteHouse endpoint (DELETE /api/houses/:id)
+- Add getAdminStats endpoint (GET /api/admin/stats)
+- Protect endpoints with adminAuth middleware
 
 Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
 ```
@@ -515,8 +872,12 @@ Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
 - [ ] Цены форматируются с пробелами (formatNumber работает)
 - [ ] Детальная страница дома работает
 - [ ] Авторизация работает
-- [ ] Админ-панель доступна для админов
-- [ ] Все 3 админ-страницы используют общий AdminLayout
+- [ ] Админ-панель доступна только для админов
+- [ ] Dashboard показывает статистику
+- [ ] Список лотов в админ-панели отображается корректно
+- [ ] Редактирование лота работает
+- [ ] Удаление лота работает (с подтверждением)
+- [ ] Навигация в админ-панели работает
 - [ ] Нет ошибок в консоли браузера
 - [ ] Сборка проходит: `npm run build`
 
@@ -551,7 +912,10 @@ Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
 
 ### Что будет улучшено:
 - Устранено дублирование кода (~50 строк) ✅
-- Создан общий layout для админ-панелей
+- Создана полноценная админ-панель с нуля с функционалом:
+  - Dashboard со статистикой
+  - Управление лотами (просмотр, редактирование, удаление)
+  - Чистая архитектура с переиспользуемым AdminLayout
 - Соответствие Vue.js Best Practices
 - Улучшена поддерживаемость кода
 
@@ -581,12 +945,14 @@ Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
 
 **Рекомендуемый график:**
 
-- **День 1:** Фаза 4 (AdminLayout) - 2-3 часа
-- **День 2-3:** Фаза 5 (Переименование) - 4-6 часов ⚠️
-- **День 4:** Фаза 6 (Очистка кода) - 2-3 часа
-- **День 5:** Фаза 7 (Зависимости) - 1-2 часа
+- **День 1-2:** Фаза 4 (Админ-панель с нуля) - 4-6 часов
+  - День 1: Layout + Dashboard + список лотов
+  - День 2: Редактирование + удаление + backend API
+- **День 3-4:** Фаза 5 (Переименование) - 4-6 часов ⚠️
+- **День 5:** Фаза 6 (Очистка кода) - 2-3 часа
+- **День 6:** Фаза 7 (Зависимости) - 1-2 часа
 
-**Общее время:** 9-14 часов работы
+**Общее время:** 11-17 часов работы
 
 ---
 
@@ -604,9 +970,20 @@ Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
 git status
 git log --oneline -5
 
-# Начать фазу 4
-# 1. Создать src/layouts/AdminLayout.vue
-# 2. Обновить 3 админ-компонента
+# Начать фазу 4 (Админ-панель)
+# 1. Удалить старые файлы админ-панели
+rm src/views/Admin/AdminPanel.vue
+rm src/views/Admin/AdminLots.vue
+rm src/views/Admin/DashboardPanel.vue
+
+# 2. Создать новые компоненты:
+# - src/layouts/AdminLayout.vue
+# - src/views/Admin/AdminDashboard.vue
+# - src/views/Admin/AdminLots.vue (новый)
+# - src/views/Admin/EditLot.vue
+
+# 3. Обновить backend/controllers/HouseController.js
+# - Добавить updateHouse, deleteHouse, getAdminStats
 
 # Начать фазу 5 (СОЗДАТЬ РЕЗЕРВНУЮ КОПИЮ!)
 git add .
