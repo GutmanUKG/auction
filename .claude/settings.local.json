@@ -6,7 +6,8 @@
       "Bash(mysql:*)",
       "Bash(node:*)",
       "Bash(npm install:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(npm ls:*)"
     ]
   }
 }

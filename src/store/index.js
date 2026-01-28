@@ -69,6 +69,14 @@ export default createStore({
       state.user.status = 'loading';
       localStorage.removeItem('token');
       localStorage.removeItem('user-info');
+    },
+    updateParamsFilter(state, params) {
+      // Обновление параметров фильтра
+      // params содержит обновленные параметры фильтрации
+      if (params) {
+        // Применить переданные параметры
+        Object.assign(state.paramsFilter, params);
+      }
     }
   },
   actions: {

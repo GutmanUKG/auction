@@ -2,7 +2,10 @@ import { HttpError } from '../utils/httpError.js';
 
 export default function adminAuth(req, res, next) {
     if (req.userRole !== 'admin') {
-        throw new HttpError(403, 'Доступ запрещен. Требуются права администратора');
+        return res.status(403).json({
+            status: false,
+            message: 'Доступ запрещен. Требуются права администратора'
+        });
     }
     next();
 }

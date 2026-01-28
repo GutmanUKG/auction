@@ -161,7 +161,7 @@ export default {
         this.paramsFilter.checkObj.isNewHouse = !this.paramsFilter.checkObj.isNewHouse
       }
       if(currentCheck == 'build_house'){
-        this.paramsFilter.checkObj.isNewHouse = !this.paramsFilter.checkObj.isNewHouse
+        this.paramsFilter.checkObj.isBuildHouse = !this.paramsFilter.checkObj.isBuildHouse
       }
       if(currentCheck == 'with_photo'){
         this.paramsFilter.checkObj.isPhoto = !this.paramsFilter.checkObj.isPhoto
