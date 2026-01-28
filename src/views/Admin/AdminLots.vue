@@ -25,11 +25,13 @@
 </template>
 
 <script>
+import { getImgUrl as getImageUrl } from '@/utils/helpers';
+
 export default {
   name: "AdminLots",
   methods:{
     getImgUrl(pic) {
-      return require('/upload/' + pic);
+      return getImageUrl(pic);
     },
   },
 }

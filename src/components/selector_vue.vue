@@ -23,6 +23,7 @@
 
 <script>
 import {watch} from "vue";
+import { formatNumber as formatNum } from '@/utils/helpers';
 
 export default {
   name: "selector_vue",
@@ -63,7 +64,7 @@ export default {
       this.areaSize.selectedMax = event.target.value
     },
     formatNumber(num) {
-      return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ") + ' ' + this.type;
+      return formatNum(num, this.type);
     }
   },
   mounted() {

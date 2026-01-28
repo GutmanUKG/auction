@@ -85,6 +85,7 @@
 </template>
 
 <script>
+import { getImgUrl as getImageUrl } from '@/utils/helpers';
 
 export default {
   name: "AdminPanel",
@@ -101,7 +102,7 @@ export default {
   },
   methods:{
     getImgUrl(pic) {
-      return require('/upload/' + pic);
+      return getImageUrl(pic);
     },
   },
   components: {

@@ -25,8 +25,15 @@
 </template>
 
 <script>
+import { getImgUrl as getImageUrl } from '@/utils/helpers';
+
 export default {
-  name: "DashboardPanel"
+  name: "DashboardPanel",
+  methods: {
+    getImgUrl(pic) {
+      return getImageUrl(pic);
+    },
+  },
 }
 </script>
 

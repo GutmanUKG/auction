@@ -113,6 +113,7 @@ import { Pagination } from 'swiper';
 import 'swiper/css'
 import 'swiper/css/pagination'
 import noImg from '@/assets/no-img.jpg'
+import { formatNumber as formatNum, getImgUrl as getImageUrl } from '@/utils/helpers';
 
 import audioSrc  from '@/assets/sound/alert.mp3';
 export default {
@@ -166,19 +167,7 @@ export default {
 
     },
     getImgUrl(pic) {
-      // Проверяем, что pic существует и не пустая строка
-      if (!pic || pic.trim() === '') {
-        return this.noImg;
-      }
-
-      try {
-        // Пытаемся загрузить изображение через require
-        return require('/upload/' + pic);
-      } catch (error) {
-        // Если файл не найден, возвращаем placeholder
-        console.warn(`Image not found: ${pic}, using placeholder`);
-        return this.noImg;
-      }
+      return getImageUrl(pic, this.noImg);
     },
     formattedDate() {
       const dateField = this.data.auctionStartDate || this.data.createdAt;
@@ -221,7 +210,7 @@ export default {
         this.isShowLose = false
     },
     formatNumber(num) {
-      return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+      return formatNum(num);
     },
     activePeopleDB(){
       return this.activePeople = this.data.userCount || 0
