@@ -3,10 +3,10 @@
     <div class="user-info" >
       <div  v-show="isAuthenticated">
         <div class="user-name" @click="togglePopup">
-          <template v-if="userInfo.data.fullName">
-            {{userInfo.data.fullName}}
+          <template v-if="userInfo.data != null">
+            {{ userInfo.data.fullName }}
           </template>
-          <template v-else>
+          <template >
             User
           </template>
 
@@ -99,6 +99,8 @@ export default {
       return this.$store.getters.isAuthenticated;
     },
     userInfo(){
+      console.log(this.$store.state.user);
+      
       return this.$store.state.user
     }
   },

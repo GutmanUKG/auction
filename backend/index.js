@@ -4,6 +4,7 @@ import { createServer } from 'http';
 import { Server } from 'socket.io';
 import authRoutes from './routes/auth.js';
 import houseRoutes from './routes/houses.js';
+import userRoutes from './routes/users.js';
 import cors from 'cors';
 import { db } from './db.js';
 
@@ -43,6 +44,7 @@ app.use(express.json());
 app.options('*', cors());
 app.use(authRoutes);
 app.use(houseRoutes);
+app.use(userRoutes);
 
 app.get('/health', (req, res) => res.json({ ok: true }));
 

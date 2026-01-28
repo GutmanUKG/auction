@@ -15,7 +15,9 @@
           <li>
             <router-link to="/about">О нас</router-link>
           </li>
-
+          <li v-if="isAdmin">
+            <router-link to="/admin" class="admin-link">Админ панель</router-link>
+          </li>
         </ul>
         <Auth_vue></Auth_vue>
       </nav>
@@ -27,12 +29,19 @@
 <script>
 import logo from '@/assets/logo.svg'
 import Auth_vue from "@/components/auth_vue";
+
+
 export default {
   name: "header_vue",
   components: {Auth_vue},
   data: ()=>{
     return{
       logo
+    }
+  },
+  computed: {
+    isAdmin() {
+      return this.$store.getters.isAdmin
     }
   }
 }
@@ -68,6 +77,11 @@ export default {
             font-size: 16px;
             line-height: 24px;
             color: #FFFFFF;
+
+            &.admin-link {
+              color: #4caf50 !important;
+              font-weight: 600 !important;
+            }
           }
         }
       }

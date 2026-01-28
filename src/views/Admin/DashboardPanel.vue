@@ -14,7 +14,7 @@
           <router-link to="/dashboard">User Profile</router-link>
         </li>
         <li>
-          <router-link to="/adminLots">Lots</router-link>
+          <router-link to="/create-house">Lots</router-link>
         </li>
       </ul>
     </div>

@@ -13,9 +13,10 @@ export default createStore({
     end: 9,
     endList: false,
     user: {
-      data: [localStorage.getItem('user-info') || null],
+      data: null,
       status: 'loading'
     },
+    userRole: null,
     token: localStorage.getItem('token') || null
   },
   getters: {
@@ -23,6 +24,8 @@ export default createStore({
       return state.end < state.houseItems.length - 1;
     },
     isAuthenticated: (state) => !!state.token,
+    isAdmin: (state) => state.userRole === 'admin',
+    currentUser: (state) => state.user.data,
   },
   mutations: {
     PUSH_ITEMS_MONGO(state, data){
@@ -54,7 +57,18 @@ export default createStore({
     SET_USER_INFO(state, data){
       state.user.data = data;
       state.user.status = 'loaded';
-      localStorage.setItem('user-info', data)
+      state.userRole = data?.role || null;
+      if (data) {
+        localStorage.setItem('user-info', JSON.stringify(data));
+      }
+    },
+    LOGOUT(state) {
+      state.token = null;
+      state.user.data = null;
+      state.userRole = null;
+      state.user.status = 'loading';
+      localStorage.removeItem('token');
+      localStorage.removeItem('user-info');
     }
   },
   actions: {
@@ -114,6 +128,20 @@ export default createStore({
     },
     user_info({commit}, data){
       commit('SET_USER_INFO', data)
+    },
+    async fetchCurrentUser({ commit, state }) {
+      if (!state.token) return;
+
+      try {
+        const response = await axios.get('/auth/me');
+        commit('SET_USER_INFO', response.data);
+      } catch (error) {
+        console.error('Error fetching user:', error);
+        commit('LOGOUT');
+      }
+    },
+    logout({ commit }) {
+      commit('LOGOUT');
     }
   },
   modules: {

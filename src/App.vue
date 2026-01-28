@@ -1,6 +1,7 @@
 <template>
   <template v-if="!isAdminPanelPage">
     <Header_vue ></Header_vue>
+  
     <div class="container">
       <router-view/>
     </div>

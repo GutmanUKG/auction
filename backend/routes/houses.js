@@ -5,9 +5,12 @@ import {
     getItem,
     updateItem,
     deleteItem,
-    placeBid
+    placeBid,
+    getAllItemsAdmin,
+    getHouseStats
 } from '../controllers/HouseController.js';
 import auth from '../middleware/auth.js';
+import adminAuth from '../middleware/adminAuth.js';
 
 const router = express.Router();
 
@@ -20,5 +23,9 @@ router.post('/houses', auth, addItem);
 router.put('/houses/:id', auth, updateItem);
 router.delete('/houses/:id', auth, deleteItem);
 router.post('/houses/:id/bid', auth, placeBid);
+
+// Админские маршруты (требуют авторизации и прав администратора)
+router.get('/admin/houses', auth, adminAuth, getAllItemsAdmin);
+router.get('/admin/houses/stats', auth, adminAuth, getHouseStats);
 
 export default router;

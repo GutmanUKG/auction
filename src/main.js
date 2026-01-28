@@ -21,4 +21,9 @@ const vuetify = createVuetify({
 
 
 
+// Инициализация пользователя при загрузке приложения
+if (store.state.token) {
+  store.dispatch('fetchCurrentUser');
+}
+
 createApp(App).use(store).use(router).use(socket).use(vuetify).directive('thanos', ThanosDirective).mount('#app')

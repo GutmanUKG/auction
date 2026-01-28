@@ -51,5 +51,5 @@ module.exports = defineConfig({
   parallel: require('os').cpus().length > 1,
 
   // Кеширование для ускорения повторных сборок
- 
+  
 })
