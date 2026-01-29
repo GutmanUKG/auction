@@ -150,11 +150,19 @@ export default {
   },
   methods: {
     place(){
+      if (!this.isAuthenticated) {
+        alert('Для участия в торгах необходимо авторизоваться')
+        return
+      }
       this.isStart = true;
       this.isShowInput = true;
       this.isShowLose = false
     },
     addCountPeople(){
+      if (!this.isAuthenticated) {
+        alert('Для участия в торгах необходимо авторизоваться')
+        return
+      }
       this.isStepSecond = false
       this.stepCount++
       this.isWin = false
@@ -227,10 +235,12 @@ export default {
   },
   computed: {
     myId() {
-    
       return this.data.id;
     },
-
+    isAuthenticated() {
+      // Проверяем наличие токена и состояние в Vuex store
+      return this.$store.getters.isAuthenticated || !!localStorage.getItem('token');
+    }
   },
   mounted(){
 

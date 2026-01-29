@@ -31,8 +31,8 @@
         <div class="stat-card">
           <div class="stat-icon">👥</div>
           <div class="stat-content">
-            <h3>Просмотров</h3>
-            <p class="stat-number">{{ totalViews }}</p>
+            <h3>Участников торгов</h3>
+            <p class="stat-number">{{ totalParticipants }}</p>
           </div>
         </div>
       </div>
@@ -55,7 +55,7 @@ export default {
       totalLots: 0,
       activeLots: 0,
       newLotsThisWeek: 0,
-      totalViews: 0,
+      totalParticipants: 0,
       loading: false,
       error: null
     }
@@ -79,7 +79,7 @@ export default {
           this.totalLots = response.data.totalLots || 0
           this.activeLots = response.data.activeLots || 0
           this.newLotsThisWeek = response.data.newLotsThisWeek || 0
-          this.totalViews = response.data.totalViews || 0
+          this.totalParticipants = response.data.totalParticipants || 0
         }
       } catch (error) {
         console.error('Error loading stats:', error)

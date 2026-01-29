@@ -27,25 +27,25 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="lot in lots" :key="lot.id">
+            <tr v-for="lot in paginatedLots" :key="lot.id">
               <td>{{ lot.id }}</td>
               <td>
                 <img
-                  v-if="lot.pic"
-                  :src="getImgUrl(lot.pic)"
+                  v-if="lot.mainImage"
+                  :src="getImgUrl(lot.mainImage)"
                   alt="Preview"
                   class="lot-preview"
                 >
                 <span v-else class="no-image">Нет фото</span>
               </td>
-              <td>{{ lot.title }}</td>
+              <td>{{ lot.name }}</td>
               <td>{{ lot.city }}</td>
-              <td class="price">{{ formatPrice(lot.price) }}</td>
-              <td>{{ lot.rooms }}</td>
-              <td>{{ lot.square }} м²</td>
+              <td class="price">{{ formatPrice(lot.startPrice) }}</td>
+              <td>{{ lot.countRoom }}</td>
+              <td>{{ lot.area }} м²</td>
               <td>
-                <span :class="['status-badge', lot.isActive ? 'active' : 'inactive']">
-                  {{ lot.isActive ? 'Активен' : 'Неактивен' }}
+                <span :class="['status-badge', isLotActive(lot) ? 'active' : 'inactive']">
+                  {{ isLotActive(lot) ? 'Активен' : 'Неактивен' }}
                 </span>
               </td>
               <td class="actions">
@@ -59,6 +59,27 @@
             </tr>
           </tbody>
         </table>
+      </div>
+
+      <!-- Pagination -->
+      <div v-if="!loading && lots.length > 0" class="pagination">
+        <button
+          @click="previousPage"
+          :disabled="currentPage === 1"
+          class="pagination-btn"
+        >
+          ← Предыдущая
+        </button>
+        <span class="pagination-info">
+          Страница {{ currentPage }} из {{ totalPages }}
+        </span>
+        <button
+          @click="nextPage"
+          :disabled="currentPage === totalPages"
+          class="pagination-btn"
+        >
+          Следующая →
+        </button>
       </div>
 
       <div v-if="!loading && lots.length === 0" class="empty-state">
@@ -83,7 +104,19 @@ export default {
     return {
       lots: [],
       loading: false,
-      error: null
+      error: null,
+      currentPage: 1,
+      itemsPerPage: 20
+    }
+  },
+  computed: {
+    totalPages() {
+      return Math.ceil(this.lots.length / this.itemsPerPage)
+    },
+    paginatedLots() {
+      const start = (this.currentPage - 1) * this.itemsPerPage
+      const end = start + this.itemsPerPage
+      return this.lots.slice(start, end)
     }
   },
   mounted() {
@@ -93,6 +126,24 @@ export default {
     getImgUrl,
     formatPrice(price) {
       return formatNumber(price, '₸')
+    },
+    isLotActive(lot) {
+      // Лот считается активным, если он был создан менее 30 дней назад
+      // или если есть текущая цена (были ставки)
+      const thirtyDaysAgo = new Date()
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+      const createdAt = new Date(lot.createdAt)
+      return lot.currentPrice || createdAt > thirtyDaysAgo
+    },
+    previousPage() {
+      if (this.currentPage > 1) {
+        this.currentPage--
+      }
+    },
+    nextPage() {
+      if (this.currentPage < this.totalPages) {
+        this.currentPage++
+      }
     },
     async loadLots() {
       this.loading = true
@@ -311,5 +362,44 @@ export default {
   font-size: 18px;
   color: #7f8c8d;
   margin-bottom: 20px;
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  margin-top: 30px;
+  padding: 20px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.pagination-btn {
+  padding: 10px 20px;
+  background: #3498db;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background 0.3s;
+}
+
+.pagination-btn:hover:not(:disabled) {
+  background: #2980b9;
+}
+
+.pagination-btn:disabled {
+  background: #bdc3c7;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.pagination-info {
+  font-size: 14px;
+  color: #2c3e50;
+  font-weight: 500;
 }
 </style>

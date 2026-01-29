@@ -157,13 +157,34 @@
 
           <div class="form-group">
             <label for="pic">Главное изображение</label>
-            <input
-              type="text"
-              id="pic"
-              v-model="formData.pic"
-              placeholder="house-main.jpg"
-            >
-            <small class="form-hint">Укажите название файла изображения</small>
+            <div class="image-upload-wrapper">
+              <div v-if="formData.pic" class="current-image">
+                <img :src="getImgUrl(formData.pic)" alt="Current image" class="preview-image">
+                <button type="button" @click="removeMainImage" class="btn-remove-img">×</button>
+              </div>
+              <div class="upload-controls">
+                <input
+                  type="file"
+                  id="mainImageFile"
+                  ref="mainImageInput"
+                  @change="handleMainImageUpload"
+                  accept="image/*"
+                  class="file-input"
+                >
+                <label for="mainImageFile" class="btn-upload">
+                  📁 Выбрать файл
+                </label>
+                <span v-if="uploadingMain" class="uploading">Загрузка...</span>
+              </div>
+              <input
+                type="text"
+                id="pic"
+                v-model="formData.pic"
+                placeholder="или укажите название файла"
+                class="filename-input"
+              >
+            </div>
+            <small class="form-hint">Загрузите новое изображение или укажите название существующего файла</small>
           </div>
         </div>
 
@@ -226,7 +247,8 @@ export default {
       loadError: null,
       isSaving: false,
       saveError: null,
-      saveSuccess: false
+      saveSuccess: false,
+      uploadingMain: false
     }
   },
   computed: {
@@ -302,6 +324,44 @@ export default {
     },
     goBack() {
       this.$router.push('/admin/lots')
+    },
+    async handleMainImageUpload(event) {
+      const file = event.target.files[0]
+      if (!file) return
+
+      this.uploadingMain = true
+
+      try {
+        const formData = new FormData()
+        formData.append('image', file)
+
+        const response = await axios.post('/upload/image', formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        })
+
+        if (response.data.success) {
+          this.formData.pic = response.data.filename
+        }
+      } catch (error) {
+        console.error('Error uploading image:', error)
+        alert('Ошибка при загрузке изображения: ' + (error.response?.data?.message || error.message))
+      } finally {
+        this.uploadingMain = false
+      }
+    },
+    removeMainImage() {
+      this.formData.pic = ''
+      if (this.$refs.mainImageInput) {
+        this.$refs.mainImageInput.value = ''
+      }
+    },
+    getImgUrl(filename) {
+      if (!filename) return ''
+      if (filename.startsWith('http')) return filename
+      return `http://localhost:3000/uploads/${filename}`
     }
   }
 }
@@ -491,5 +551,81 @@ export default {
 .success {
   background: #e8f5e9;
   color: #2e7d32;
+}
+
+.image-upload-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.current-image {
+  position: relative;
+  display: inline-block;
+  max-width: 300px;
+}
+
+.preview-image {
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
+  border: 2px solid #dfe6e9;
+}
+
+.btn-remove-img {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 30px;
+  height: 30px;
+  background: #e74c3c;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  font-size: 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.3s;
+}
+
+.btn-remove-img:hover {
+  background: #c0392b;
+}
+
+.upload-controls {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.file-input {
+  display: none;
+}
+
+.btn-upload {
+  padding: 10px 20px;
+  background: #3498db;
+  color: white;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background 0.3s;
+  display: inline-block;
+}
+
+.btn-upload:hover {
+  background: #2980b9;
+}
+
+.uploading {
+  color: #3498db;
+  font-size: 14px;
+  font-style: italic;
+}
+
+.filename-input {
+  margin-top: 10px;
 }
 </style>

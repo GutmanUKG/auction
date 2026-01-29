@@ -213,9 +213,14 @@ export const getAdminStats = asyncHandler(async (req, res) => {
     const totalLotsResult = await db('houses').count('id as count').first();
     const totalLots = totalLotsResult.count || 0;
 
-    // Активные лоты (можно определить по вашим критериям, например isActive = true)
-    // Если у вас нет поля isActive, можно считать все лоты активными
-    const activeLotsResult = await db('houses').count('id as count').first();
+    // Активные лоты (лоты с текущей ценой или недавно созданные)
+    const activeLotsResult = await db('houses')
+        .where(function() {
+            this.whereNotNull('current_price')
+                .orWhere('created_at', '>=', db.raw('DATE_SUB(NOW(), INTERVAL 30 DAY)'));
+        })
+        .count('id as count')
+        .first();
     const activeLots = activeLotsResult.count || 0;
 
     // Новые лоты за последние 7 дней
@@ -227,15 +232,15 @@ export const getAdminStats = asyncHandler(async (req, res) => {
         .first();
     const newLotsThisWeek = newLotsResult.count || 0;
 
-    // Общее количество просмотров
-    const totalViewsResult = await db('houses').sum('views_count as total').first();
-    const totalViews = totalViewsResult.total || 0;
+    // Общее количество участников (сумма user_count из всех лотов)
+    const totalParticipantsResult = await db('houses').sum('user_count as total').first();
+    const totalParticipants = totalParticipantsResult.total || 0;
 
     return res.json({
         totalLots,
         activeLots,
         newLotsThisWeek,
-        totalViews
+        totalParticipants
     });
 });
 
