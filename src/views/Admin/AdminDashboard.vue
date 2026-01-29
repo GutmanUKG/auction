@@ -45,7 +45,7 @@
 
 <script>
 import AdminLayout from '@/layouts/AdminLayout.vue'
-import axios from 'axios'
+import axios from '@/axios'
 
 export default {
   name: 'AdminDashboard',
@@ -69,11 +69,7 @@ export default {
       this.error = null
 
       try {
-        const response = await axios.get('/api/admin/stats', {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
-          }
-        })
+        const response = await axios.get('/admin/stats')
 
         if (response.data) {
           this.totalLots = response.data.totalLots || 0

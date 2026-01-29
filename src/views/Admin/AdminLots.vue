@@ -95,7 +95,7 @@
 <script>
 import AdminLayout from '@/layouts/AdminLayout.vue'
 import { formatNumber, getImgUrl } from '@/utils/helpers'
-import axios from 'axios'
+import axios from '@/axios'
 
 export default {
   name: 'AdminLots',
@@ -150,11 +150,7 @@ export default {
       this.error = null
 
       try {
-        const response = await axios.get('/api/houses', {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
-          }
-        })
+        const response = await axios.get('/houses')
 
         this.lots = response.data || []
       } catch (error) {
@@ -173,11 +169,7 @@ export default {
       }
 
       try {
-        await axios.delete(`/api/houses/${id}`, {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
-          }
-        })
+        await axios.delete(`/houses/${id}`)
 
         // Remove from local array
         this.lots = this.lots.filter(lot => lot.id !== id)

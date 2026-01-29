@@ -220,7 +220,7 @@
 
 <script>
 import AdminLayout from '@/layouts/AdminLayout.vue'
-import axios from 'axios'
+import axios from '@/axios'
 
 export default {
   name: 'EditLot',
@@ -265,11 +265,7 @@ export default {
       this.loadError = null
 
       try {
-        const response = await axios.get(`/api/houses/${this.lotId}`, {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
-          }
-        })
+        const response = await axios.get(`/houses/${this.lotId}`)
 
         if (response.data) {
           // Map database fields to form fields
@@ -303,11 +299,7 @@ export default {
       this.saveSuccess = false
 
       try {
-        await axios.put(`/api/houses/${this.lotId}`, this.formData, {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
-          }
-        })
+        await axios.put(`/houses/${this.lotId}`, this.formData)
 
         this.saveSuccess = true
 
@@ -335,12 +327,7 @@ export default {
         const formData = new FormData()
         formData.append('image', file)
 
-        const response = await axios.post('/upload/image', formData, {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
-          }
-        })
+        const response = await axios.post('/upload/image', formData)
 
         if (response.data.success) {
           this.formData.pic = response.data.filename
