@@ -15,11 +15,11 @@
           <h2>Основная информация</h2>
 
           <div class="form-group">
-            <label for="title">Название объекта *</label>
+            <label for="name">Название объекта *</label>
             <input
               type="text"
-              id="title"
-              v-model="formData.title"
+              id="name"
+              v-model="formData.name"
               required
               placeholder="Например: Красивый дом на берегу озера"
             >
@@ -36,21 +36,21 @@
           </div>
 
           <div class="form-group">
-            <label for="description">Полное описание</label>
+            <label for="text">Полное описание</label>
             <textarea
-              id="description"
-              v-model="formData.description"
+              id="text"
+              v-model="formData.text"
               rows="5"
               placeholder="Подробное описание объекта"
             ></textarea>
           </div>
 
           <div class="form-group">
-            <label for="price">Цена (₸) *</label>
+            <label for="startPrice">Начальная цена (₸) *</label>
             <input
               type="number"
-              id="price"
-              v-model.number="formData.price"
+              id="startPrice"
+              v-model.number="formData.startPrice"
               required
               min="0"
               placeholder="5000000"
@@ -114,11 +114,11 @@
 
           <div class="form-row">
             <div class="form-group">
-              <label for="square">Площадь (м²) *</label>
+              <label for="area">Площадь (м²) *</label>
               <input
                 type="number"
-                id="square"
-                v-model.number="formData.square"
+                id="area"
+                v-model.number="formData.area"
                 required
                 min="1"
                 placeholder="100"
@@ -126,11 +126,11 @@
             </div>
 
             <div class="form-group">
-              <label for="rooms">Количество комнат *</label>
+              <label for="countRoom">Количество комнат *</label>
               <input
                 type="number"
-                id="rooms"
-                v-model.number="formData.rooms"
+                id="countRoom"
+                v-model.number="formData.countRoom"
                 required
                 min="1"
                 placeholder="3"
@@ -153,13 +153,13 @@
 
         <!-- Изображения -->
         <div class="form-section">
-          <h2>Главное изображение</h2>
+          <h2>Изображения</h2>
 
           <div class="form-group">
-            <label for="pic">Главное изображение</label>
+            <label for="mainImage">Главное изображение</label>
             <div class="image-upload-wrapper">
-              <div v-if="formData.pic" class="current-image">
-                <img :src="getImgUrl(formData.pic)" alt="Current image" class="preview-image">
+              <div v-if="formData.mainImage" class="current-image">
+                <img :src="getImgUrl(formData.mainImage)" alt="Current image" class="preview-image">
                 <button type="button" @click="removeMainImage" class="btn-remove-img">×</button>
               </div>
               <div class="upload-controls">
@@ -178,13 +178,39 @@
               </div>
               <input
                 type="text"
-                id="pic"
-                v-model="formData.pic"
+                id="mainImage"
+                v-model="formData.mainImage"
                 placeholder="или укажите название файла"
                 class="filename-input"
               >
             </div>
             <small class="form-hint">Загрузите новое изображение или укажите название существующего файла</small>
+          </div>
+
+          <div class="form-group">
+            <label>Дополнительные изображения</label>
+            <div class="upload-controls">
+              <input
+                type="file"
+                id="additionalImageFile"
+                ref="additionalImageInput"
+                @change="handleAdditionalImageUpload"
+                accept="image/*"
+                class="file-input"
+              >
+              <label for="additionalImageFile" class="btn-upload">
+                📁 Добавить изображение
+              </label>
+              <span v-if="uploadingAdditional" class="uploading">Загрузка...</span>
+            </div>
+            <small class="form-hint">Загрузите дополнительные изображения для галереи</small>
+
+            <div v-if="formData.images && formData.images.length > 0" class="images-gallery">
+              <div v-for="(image, index) in formData.images" :key="index" class="gallery-item">
+                <img :src="getImgUrl(image)" :alt="`Image ${index + 1}`" class="gallery-image">
+                <button type="button" @click="removeAdditionalImage(index)" class="btn-remove-gallery">×</button>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -229,18 +255,19 @@ export default {
     return {
       lotId: this.$route.params.id,
       formData: {
-        title: '',
+        name: '',
         prevText: '',
-        description: '',
-        price: 0,
+        text: '',
+        startPrice: 0,
         country: 'Казахстан',
         city: '',
         street: '',
         address: '',
-        square: 0,
-        rooms: 0,
+        area: 0,
+        countRoom: 0,
         year: null,
-        pic: '',
+        mainImage: '',
+        images: [],
         isActive: true
       },
       loading: false,
@@ -248,7 +275,8 @@ export default {
       isSaving: false,
       saveError: null,
       saveSuccess: false,
-      uploadingMain: false
+      uploadingMain: false,
+      uploadingAdditional: false
     }
   },
   computed: {
@@ -271,18 +299,19 @@ export default {
           // Map database fields to form fields
           const lot = response.data
           this.formData = {
-            title: lot.title || '',
+            name: lot.name || '',
             prevText: lot.prevText || '',
-            description: lot.description || '',
-            price: lot.price || 0,
+            text: lot.text || '',
+            startPrice: lot.startPrice || 0,
             country: lot.country || 'Казахстан',
             city: lot.city || '',
             street: lot.street || '',
             address: lot.address || '',
-            square: lot.square || 0,
-            rooms: lot.rooms || 0,
+            area: lot.area || 0,
+            countRoom: lot.countRoom || 0,
             year: lot.year || null,
-            pic: lot.pic || '',
+            mainImage: lot.mainImage || '',
+            images: lot.images || [],
             isActive: lot.isActive !== undefined ? lot.isActive : true
           }
         }
@@ -330,7 +359,7 @@ export default {
         const response = await axios.post('/upload/image', formData)
 
         if (response.data.success) {
-          this.formData.pic = response.data.filename
+          this.formData.mainImage = response.data.filename
         }
       } catch (error) {
         console.error('Error uploading image:', error)
@@ -340,10 +369,41 @@ export default {
       }
     },
     removeMainImage() {
-      this.formData.pic = ''
+      this.formData.mainImage = ''
       if (this.$refs.mainImageInput) {
         this.$refs.mainImageInput.value = ''
       }
+    },
+    async handleAdditionalImageUpload(event) {
+      const file = event.target.files[0]
+      if (!file) return
+
+      this.uploadingAdditional = true
+
+      try {
+        const formData = new FormData()
+        formData.append('image', file)
+
+        const response = await axios.post('/upload/image', formData)
+
+        if (response.data.success) {
+          if (!this.formData.images) {
+            this.formData.images = []
+          }
+          this.formData.images.push(response.data.filename)
+        }
+      } catch (error) {
+        console.error('Error uploading image:', error)
+        alert('Ошибка при загрузке изображения: ' + (error.response?.data?.message || error.message))
+      } finally {
+        this.uploadingAdditional = false
+        if (this.$refs.additionalImageInput) {
+          this.$refs.additionalImageInput.value = ''
+        }
+      }
+    },
+    removeAdditionalImage(index) {
+      this.formData.images.splice(index, 1)
     },
     getImgUrl(filename) {
       if (!filename) return ''
@@ -614,5 +674,55 @@ export default {
 
 .filename-input {
   margin-top: 10px;
+}
+
+.images-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 15px;
+  margin-top: 20px;
+}
+
+.gallery-item {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 2px solid #dfe6e9;
+  transition: transform 0.3s;
+}
+
+.gallery-item:hover {
+  transform: scale(1.05);
+}
+
+.gallery-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.btn-remove-gallery {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 28px;
+  height: 28px;
+  background: #e74c3c;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  font-size: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.3s;
+  opacity: 0.9;
+}
+
+.btn-remove-gallery:hover {
+  background: #c0392b;
+  opacity: 1;
 }
 </style>
