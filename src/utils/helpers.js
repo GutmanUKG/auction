@@ -23,12 +23,11 @@ export function getImgUrl(pic, placeholder = null) {
     return placeholder || require('@/assets/no-img.jpg');
   }
 
-  try {
-    // Пытаемся загрузить изображение через require
-    return require('/upload/' + pic);
-  } catch (error) {
-    // Если файл не найден, возвращаем placeholder
-    console.warn(`Image not found: ${pic}, using placeholder`);
-    return placeholder || require('@/assets/no-img.jpg');
+  // Если это уже полный URL, возвращаем как есть
+  if (pic.startsWith('http://') || pic.startsWith('https://')) {
+    return pic;
   }
+
+  // Формируем URL для загрузки с бэкенда
+  return `http://localhost:3000/uploads/${pic}`;
 }

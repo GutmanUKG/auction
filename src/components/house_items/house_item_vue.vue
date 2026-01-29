@@ -10,6 +10,7 @@
   v-if="data.images && data.images.length > 1">
           <swiper-slide class="slide" :key="key" v-for="(item ,key) in data.images">
             <img :src="getImgUrl(item)" :alt="data.name"  >
+          
           </swiper-slide>
         </swiper>
         <div class="item-img" v-else-if="data.mainImage">
@@ -19,7 +20,7 @@
           <img :src="noImg" alt="no image">
         </div>
       </div>
-
+    
       <div class="item-descr">
         <div class="item-name">
           <router-link :to="{name: `detail_house`, params: {id: data.id}}">
