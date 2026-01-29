@@ -49,6 +49,8 @@ export default createStore({
     },
     PUSH_DETAIL_PAGE(state, data){
       state.detailHouse = data;
+      console.log(state.detailHouse);
+      
     },
     SET_TOKEN(state, token){
       state.token = token
@@ -122,14 +124,16 @@ export default createStore({
         console.log('Все загруженно')
       }
     },
-    getHouseItemById({commit} ,id){
-      console.log(id)
-      console.log(commit)
-      fetch(`http://localhost:3000/api/data/${id}`)
-          .then(res=> res.json())
-          .then(data=>{
-            this.state.detailHouse = data;
-          })
+    async getHouseItemById({commit}, id) {
+      try {
+        commit('SET_LOADING', true);
+        const response = await axios.get(`/houses/${id}`);
+        commit('PUSH_DETAIL_PAGE', response.data);
+        commit('SET_LOADING', false);
+      } catch (error) {
+        console.error('Error fetching house details:', error);
+        commit('SET_LOADING', false);
+      }
     },
     login({commit}, token){
       commit('SET_TOKEN', token)
