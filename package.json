@@ -5,22 +5,20 @@
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
-    "lint": "vue-cli-service lint"
+    "lint": "vue-cli-service lint",
+    "dev": "concurrently \"npm run serve\" \"npm run backend:dev\" --names \"FRONT,BACK\" --prefix-colors \"cyan,magenta\"",
+    "backend:dev": "cd backend && npm run dev",
+    "start": "concurrently \"npm run serve\" \"npm run backend:start\" --names \"FRONT,BACK\" --prefix-colors \"cyan,magenta\"",
+    "backend:start": "cd backend && npm start"
   },
   "dependencies": {
     "axios": "^1.4.0",
-    "body-parser": "^1.20.2",
     "core-js": "^3.8.3",
-    "express": "^4.18.2",
     "html2canvas": "^1.4.1",
-    "mysql": "^2.18.1",
-    "nodeman": "^1.1.2",
-    "socket.io": "^4.6.1",
     "socket.io-client": "^4.6.1",
     "swiper": "^9.4.1",
     "vue": "^3.2.13",
     "vue-router": "^4.0.3",
-    "vue-slick": "^1.2.0",
     "vue3-slick-carousel": "^1.0.6",
     "vuetify": "^3.3.5",
     "vuex": "^4.0.0"
@@ -34,7 +32,7 @@
     "@vue/cli-plugin-vuex": "~5.0.0",
     "@vue/cli-service": "~5.0.0",
     "bootstrap": "^5.3.0",
-    "cors": "^2.8.5",
+    "concurrently": "^8.2.2",
     "eslint": "^7.32.0",
     "eslint-plugin-vue": "^8.0.3",
     "http-proxy-middleware": "^2.0.6",
