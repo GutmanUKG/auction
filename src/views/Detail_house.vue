@@ -1,30 +1,49 @@
 <template>
   <div class="detail-page" v-if="detailHouse && detailHouse.id">
     <div class="container">
+      <!-- Кнопка назад -->
+      <button @click="$router.push('/')" class="btn-back">
+        ← Вернуться к списку
+      </button>
+
       <div class="detail-content">
         <!-- Левая колонка: Галерея изображений -->
         <div class="detail-gallery">
           <h1 class="detail-title">{{ detailHouse.name }}</h1>
+          <div class="">
 
-          <!-- Галерея изображений -->
+          
+    <!-- Галерея изображений -->
           <template v-if="images.length > 0">
             <swiper
               class="detail-swiper"
               :slides-per-view="1"
               :space-between="10"
-              :pagination="{ clickable: true }"
+              :pagination="{ clickable: true, dynamicBullets: true }"
               :navigation="true"
+              :loop="images.length > 1"
+              :modules="modules"
             >
-              <swiper-slide v-for="(image, idx) in images" :key="idx">
-                <img :src="getImgUrl(image)" :alt="detailHouse.name" class="gallery-image">
+              <swiper-slide v-for="(image, idx) in images" :key="idx"
+              style="width: 100%;">
+                <div class="slide-container">
+                  <img :src="getImgUrl(image)" :alt="detailHouse.name" class="gallery-image">
+                </div>
               </swiper-slide>
             </swiper>
+          </template>
+          <template v-else-if="detailHouse.mainImage">
+            <div class="single-image">
+              <img :src="getImgUrl(detailHouse.mainImage)" :alt="detailHouse.name" class="gallery-image">
+            </div>
           </template>
           <template v-else>
             <div class="no-image">
               <img :src="noImg" alt="Нет изображения" class="gallery-image">
             </div>
           </template>
+         
+      </div>
 
           <!-- Описание -->
           <div class="detail-description">
@@ -141,6 +160,7 @@
 
 <script>
 import { Swiper, SwiperSlide } from 'swiper/vue';
+import { Pagination , Navigation} from 'swiper';
 import 'swiper/css';
 import 'swiper/css/pagination';
 import 'swiper/css/navigation';
@@ -163,6 +183,7 @@ export default {
       isWin: false,
       isShowLose: false,
       isLoseText: 'Вас перебили!',
+      modules: [Navigation, Pagination],
     };
   },
 
@@ -272,6 +293,7 @@ export default {
 </script>
 
 <style scoped>
+
 .detail-page {
   background: #f5f5f5;
   min-height: 100vh;
@@ -282,6 +304,27 @@ export default {
   max-width: 1200px;
   margin: 0 auto;
   padding: 0 20px;
+}
+
+.btn-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  margin-bottom: 20px;
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #333;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.btn-back:hover {
+  background: #f5f5f5;
+  border-color: #2196f3;
+  color: #2196f3;
 }
 
 .detail-content {
@@ -309,17 +352,56 @@ export default {
   margin-bottom: 30px;
   border-radius: 8px;
   overflow: hidden;
+  background: #f5f5f5;
+  position: relative;
+}
+
+.detail-swiper :deep(.swiper-button-next),
+.detail-swiper :deep(.swiper-button-prev) {
+  color: #2196f3;
+  background: rgba(255, 255, 255, 0.9);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+}
+
+.detail-swiper :deep(.swiper-button-next):after,
+.detail-swiper :deep(.swiper-button-prev):after {
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.detail-swiper :deep(.swiper-pagination-bullet) {
+  background: #2196f3;
+  opacity: 0.5;
+}
+
+.detail-swiper :deep(.swiper-pagination-bullet-active) {
+  opacity: 1;
+}
+
+.slide-container {
+  width: 100%;
+  height: 500px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f5f5f5;
 }
 
 .gallery-image {
   width: 100%;
-  height: 500px;
+  height: 100%;
   object-fit: cover;
-  border-radius: 8px;
+  display: block;
 }
 
+.single-image,
 .no-image {
   margin-bottom: 30px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #f5f5f5;
 }
 
 .detail-description {
@@ -583,8 +665,16 @@ export default {
 }
 
 @media (max-width: 768px) {
+  .detail-page {
+    padding: 20px 0;
+  }
+
   .detail-title {
     font-size: 24px;
+  }
+
+  .slide-container {
+    height: 300px;
   }
 
   .gallery-image {
@@ -596,5 +686,35 @@ export default {
   .auction-card {
     padding: 20px;
   }
+
+  .current-price {
+    font-size: 18px;
+  }
 }
+
+@media (max-width: 480px) {
+  .detail-title {
+    font-size: 20px;
+  }
+
+  .slide-container {
+    height: 250px;
+  }
+
+  .info-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
+  }
+
+  .bid-actions {
+    flex-direction: column;
+  }
+
+  .btn-submit,
+  .btn-cancel {
+    width: 100%;
+  }
+}
+
 </style>

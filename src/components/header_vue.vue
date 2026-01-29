@@ -76,7 +76,7 @@ export default {
             font-weight: 500;
             font-size: 16px;
             line-height: 24px;
-            color: #FFFFFF;
+            color: #000;
 
             &.admin-link {
               color: #4caf50 !important;
