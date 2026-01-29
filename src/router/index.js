@@ -11,28 +11,27 @@ const routes = [
   },
   {
     path: '/admin',
-    name: 'admin',
-    component: () => import('../views/Admin/AdminPanel'),
+    redirect: '/admin/dashboard',
     meta: { requiresAuth: true, requiresAdmin: true }
   },
   {
-    path: '/dashboard',
-    name: 'DashboardPanel',
-    component: () => import('../views/Admin/DashboardPanel'),
+    path: '/admin/dashboard',
+    name: 'AdminDashboard',
+    component: () => import('../views/Admin/AdminDashboard.vue'),
     meta: { requiresAuth: true, requiresAdmin: true }
   },
   {
-    path: '/adminLots',
+    path: '/admin/lots',
     name: 'AdminLots',
-    component: () => import('../views/Admin/AdminLots'),
+    component: () => import('../views/Admin/AdminLots.vue'),
     meta: { requiresAuth: true, requiresAdmin: true }
   },
-  // {
-  //   path: '/admin/users',
-  //   name: 'AdminUsers',
-  //   component: () => import('../views/Admin/AdminUsers'),
-  //   meta: { requiresAuth: true, requiresAdmin: true }
-  // },
+  {
+    path: '/admin/lots/:id/edit',
+    name: 'EditLot',
+    component: () => import('../views/Admin/EditLot.vue'),
+    meta: { requiresAuth: true, requiresAdmin: true }
+  },
   {
     path: '/about',
     name: 'about',

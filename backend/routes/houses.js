@@ -7,7 +7,8 @@ import {
     deleteItem,
     placeBid,
     getAllItemsAdmin,
-    getHouseStats
+    getHouseStats,
+    getAdminStats
 } from '../controllers/HouseController.js';
 import auth from '../middleware/auth.js';
 import adminAuth from '../middleware/adminAuth.js';
@@ -27,5 +28,6 @@ router.post('/houses/:id/bid', auth, placeBid);
 // Админские маршруты (требуют авторизации и прав администратора)
 router.get('/admin/houses', auth, adminAuth, getAllItemsAdmin);
 router.get('/admin/houses/stats', auth, adminAuth, getHouseStats);
+router.get('/admin/stats', auth, adminAuth, getAdminStats);
 
 export default router;

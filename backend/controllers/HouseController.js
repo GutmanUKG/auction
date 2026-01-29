@@ -207,3 +207,35 @@ export const getHouseStats = asyncHandler(async (req, res) => {
     });
 });
 
+// Получить расширенную статистику для админ-панели
+export const getAdminStats = asyncHandler(async (req, res) => {
+    // Общее количество лотов
+    const totalLotsResult = await db('houses').count('id as count').first();
+    const totalLots = totalLotsResult.count || 0;
+
+    // Активные лоты (можно определить по вашим критериям, например isActive = true)
+    // Если у вас нет поля isActive, можно считать все лоты активными
+    const activeLotsResult = await db('houses').count('id as count').first();
+    const activeLots = activeLotsResult.count || 0;
+
+    // Новые лоты за последние 7 дней
+    const oneWeekAgo = new Date();
+    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+    const newLotsResult = await db('houses')
+        .where('created_at', '>=', oneWeekAgo)
+        .count('id as count')
+        .first();
+    const newLotsThisWeek = newLotsResult.count || 0;
+
+    // Общее количество просмотров
+    const totalViewsResult = await db('houses').sum('views_count as total').first();
+    const totalViews = totalViewsResult.total || 0;
+
+    return res.json({
+        totalLots,
+        activeLots,
+        newLotsThisWeek,
+        totalViews
+    });
+});
+
