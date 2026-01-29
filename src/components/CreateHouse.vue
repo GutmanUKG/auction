@@ -170,32 +170,58 @@
 
           <div class="form-group">
             <label for="mainImage">Главное изображение</label>
-            <input
-              type="text"
-              id="mainImage"
-              v-model="formData.mainImage"
-              placeholder="house-main.jpg"
-            >
-            <small class="form-hint">Укажите название файла изображения</small>
+            <div class="image-upload-wrapper">
+              <div v-if="formData.mainImage" class="current-image">
+                <img :src="getImgUrl(formData.mainImage)" alt="Preview" class="preview-image">
+                <button type="button" @click="removeMainImage" class="btn-remove-img">×</button>
+              </div>
+              <div class="upload-controls">
+                <input
+                  type="file"
+                  id="mainImageFile"
+                  ref="mainImageInput"
+                  @change="handleMainImageUpload"
+                  accept="image/*"
+                  class="file-input"
+                >
+                <label for="mainImageFile" class="btn-upload">
+                  📁 Выбрать файл
+                </label>
+                <span v-if="uploadingMain" class="uploading">Загрузка...</span>
+              </div>
+              <input
+                type="text"
+                id="mainImage"
+                v-model="formData.mainImage"
+                placeholder="или укажите название файла"
+                class="filename-input"
+              >
+            </div>
+            <small class="form-hint">Загрузите изображение с устройства или укажите название существующего файла</small>
           </div>
 
           <div class="form-group">
             <label>Дополнительные изображения</label>
-            <div class="images-input">
+            <div class="upload-controls">
               <input
-                type="text"
-                v-model="newImage"
-                @keyup.enter="addImage"
-                placeholder="house-1.jpg"
+                type="file"
+                id="additionalImageFile"
+                ref="additionalImageInput"
+                @change="handleAdditionalImageUpload"
+                accept="image/*"
+                class="file-input"
               >
-              <button type="button" @click="addImage" class="btn-add-image">Добавить</button>
+              <label for="additionalImageFile" class="btn-upload">
+                📁 Добавить изображение
+              </label>
+              <span v-if="uploadingAdditional" class="uploading">Загрузка...</span>
             </div>
-            <small class="form-hint">Нажмите Enter или кнопку "Добавить" для добавления изображения</small>
+            <small class="form-hint">Загрузите дополнительные изображения для галереи</small>
 
-            <div v-if="formData.images.length > 0" class="images-list">
-              <div v-for="(image, index) in formData.images" :key="index" class="image-item">
-                <span>{{ image }}</span>
-                <button type="button" @click="removeImage(index)" class="btn-remove">×</button>
+            <div v-if="formData.images.length > 0" class="images-gallery">
+              <div v-for="(image, index) in formData.images" :key="index" class="gallery-item">
+                <img :src="getImgUrl(image)" :alt="`Image ${index + 1}`" class="gallery-image">
+                <button type="button" @click="removeImage(index)" class="btn-remove-gallery">×</button>
               </div>
             </div>
           </div>
@@ -243,10 +269,11 @@ export default {
         mainImage: '',
         images: []
       },
-      newImage: '',
       isSubmitting: false,
       error: null,
-      success: false
+      success: false,
+      uploadingMain: false,
+      uploadingAdditional: false
     }
   },
   computed: {
@@ -260,14 +287,66 @@ export default {
     }
   },
   methods: {
-    addImage() {
-      if (this.newImage.trim()) {
-        this.formData.images.push(this.newImage.trim());
-        this.newImage = '';
+    async handleMainImageUpload(event) {
+      const file = event.target.files[0]
+      if (!file) return
+
+      this.uploadingMain = true
+
+      try {
+        const formData = new FormData()
+        formData.append('image', file)
+
+        const response = await axios.post('/upload/image', formData)
+
+        if (response.data.success) {
+          this.formData.mainImage = response.data.filename
+        }
+      } catch (error) {
+        console.error('Error uploading image:', error)
+        this.error = 'Ошибка при загрузке изображения: ' + (error.response?.data?.message || error.message)
+      } finally {
+        this.uploadingMain = false
+      }
+    },
+    removeMainImage() {
+      this.formData.mainImage = ''
+      if (this.$refs.mainImageInput) {
+        this.$refs.mainImageInput.value = ''
+      }
+    },
+    async handleAdditionalImageUpload(event) {
+      const file = event.target.files[0]
+      if (!file) return
+
+      this.uploadingAdditional = true
+
+      try {
+        const formData = new FormData()
+        formData.append('image', file)
+
+        const response = await axios.post('/upload/image', formData)
+
+        if (response.data.success) {
+          this.formData.images.push(response.data.filename)
+        }
+      } catch (error) {
+        console.error('Error uploading image:', error)
+        this.error = 'Ошибка при загрузке изображения: ' + (error.response?.data?.message || error.message)
+      } finally {
+        this.uploadingAdditional = false
+        if (this.$refs.additionalImageInput) {
+          this.$refs.additionalImageInput.value = ''
+        }
       }
     },
     removeImage(index) {
-      this.formData.images.splice(index, 1);
+      this.formData.images.splice(index, 1)
+    },
+    getImgUrl(filename) {
+      if (!filename) return ''
+      if (filename.startsWith('http')) return filename
+      return `http://localhost:3000/uploads/${filename}`
     },
     async createHouse() {
       this.isSubmitting = true;
@@ -422,13 +501,58 @@ export default {
   margin-top: 6px;
 }
 
-.images-input {
+.image-upload-wrapper {
   display: flex;
-  gap: 12px;
-  margin-bottom: 12px;
+  flex-direction: column;
+  gap: 15px;
 }
 
-.btn-add-image {
+.current-image {
+  position: relative;
+  display: inline-block;
+  max-width: 300px;
+}
+
+.preview-image {
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
+  border: 2px solid #e0e0e0;
+}
+
+.btn-remove-img {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 30px;
+  height: 30px;
+  background: #e55300;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  font-size: 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.3s;
+}
+
+.btn-remove-img:hover {
+  background: #cc4700;
+}
+
+.upload-controls {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.file-input {
+  display: none;
+}
+
+.btn-upload {
   padding: 12px 24px;
   font-family: 'Inter', sans-serif;
   font-size: 14px;
@@ -440,48 +564,71 @@ export default {
   cursor: pointer;
   transition: background 0.3s;
   white-space: nowrap;
+  display: inline-block;
 }
 
-.btn-add-image:hover {
+.btn-upload:hover {
   background: #0066cc;
 }
 
-.images-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-top: 12px;
-}
-
-.image-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 10px 16px;
-  background: #f8f9fa;
-  border-radius: 8px;
-  font-family: 'Inter', sans-serif;
+.uploading {
+  color: #0077E6;
   font-size: 14px;
-  color: #333333;
+  font-style: italic;
 }
 
-.btn-remove {
+.filename-input {
+  margin-top: 10px;
+}
+
+.images-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 15px;
+  margin-top: 20px;
+}
+
+.gallery-item {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 2px solid #e0e0e0;
+  transition: transform 0.3s;
+}
+
+.gallery-item:hover {
+  transform: scale(1.05);
+}
+
+.gallery-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.btn-remove-gallery {
+  position: absolute;
+  top: 8px;
+  right: 8px;
   width: 28px;
   height: 28px;
+  background: #e55300;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  font-size: 18px;
+  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 24px;
-  color: #e55300;
-  background: transparent;
-  border: none;
-  border-radius: 50%;
-  cursor: pointer;
   transition: background 0.3s;
+  opacity: 0.9;
 }
 
-.btn-remove:hover {
-  background: rgba(229, 83, 0, 0.1);
+.btn-remove-gallery:hover {
+  background: #cc4700;
+  opacity: 1;
 }
 
 .form-actions {
