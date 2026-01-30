@@ -15,21 +15,17 @@
           
     <!-- Галерея изображений -->
           <template v-if="images.length > 0">
-            <carousel
+            <Carousel
               class="detail-carousel"
-              :items="1"
-              :margin="10"
-              :nav="true"
-              :dots="true"
-              :loop="images.length > 1"
-              :autoplay="false"
+              :items-to-show="1"
+              :wrap-around="images.length > 1"
             >
-              <div v-for="(image, idx) in images" :key="idx">
+              <Slide v-for="(image, idx) in images" :key="idx">
                 <div class="slide-container">
                   <img :src="getImgUrl(image)" :alt="detailHouse.name" class="gallery-image">
                 </div>
-              </div>
-            </carousel>
+              </Slide>
+            </Carousel>
           </template>
           <template v-else-if="detailHouse.mainImage">
             <div class="single-image">
@@ -181,7 +177,8 @@
 </template>
 
 <script>
-import carousel from 'v-owl-carousel';
+import { Carousel, Slide } from 'vue3-carousel';
+import 'vue3-carousel/dist/carousel.css';
 import noImg from '@/assets/no-img.jpg';
 import { mapState, mapGetters } from 'vuex';
 import { getImgUrl, formatNumber } from '@/utils/helpers';
@@ -209,7 +206,8 @@ export default {
   },
 
   components: {
-    carousel,
+    Carousel,
+    Slide,
     AuctionTimer
   },
 
@@ -466,34 +464,25 @@ export default {
   position: relative;
 }
 
-.detail-carousel :deep(.owl-nav button) {
+.detail-carousel :deep(.carousel__prev),
+.detail-carousel :deep(.carousel__next) {
   color: #2196f3;
   background: rgba(255, 255, 255, 0.9);
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  font-size: 20px;
-  font-weight: bold;
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
 }
 
-.detail-carousel :deep(.owl-nav button.owl-prev) {
-  left: 10px;
-}
-
-.detail-carousel :deep(.owl-nav button.owl-next) {
-  right: 10px;
-}
-
-.detail-carousel :deep(.owl-dot) {
+.detail-carousel :deep(.carousel__pagination-button) {
   background: #2196f3;
   opacity: 0.5;
+  width: 12px;
+  height: 12px;
 }
 
-.detail-carousel :deep(.owl-dot.active) {
+.detail-carousel :deep(.carousel__pagination-button--active) {
   opacity: 1;
+  background: #2196f3;
 }
 
 .slide-container {

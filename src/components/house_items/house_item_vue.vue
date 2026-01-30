@@ -3,17 +3,15 @@
   
     <div class="item_slider" :id="myId">
       <div class="item-imgs-slider">
-        <carousel
+        <Carousel
          class="item-carousel"
-  :items="1"
-  :dots="true"
-  :nav="false"
-  :loop="true"
+  :items-to-show="1"
+  :wrap-around="true"
   v-if="data.images && data.images.length > 1">
-          <div class="slide" :key="key" v-for="(item ,key) in data.images">
+          <Slide class="slide" :key="key" v-for="(item ,key) in data.images">
             <img :src="getImgUrl(item)" :alt="data.name"  >
-          </div>
-        </carousel>
+          </Slide>
+        </Carousel>
         <div class="item-img" v-else-if="data.mainImage">
           <img :src="getImgUrl(data.mainImage)" :alt="data.name">
         </div>
@@ -118,7 +116,8 @@
 </template>
 
 <script>
-import carousel from 'v-owl-carousel';
+import { Carousel, Slide } from 'vue3-carousel';
+import 'vue3-carousel/dist/carousel.css';
 import noImg from '@/assets/no-img.jpg'
 import { formatNumber as formatNum, getImgUrl as getImageUrl } from '@/utils/helpers';
 import AuctionTimer from '@/components/AuctionTimer.vue';
@@ -127,7 +126,7 @@ import audioSrc  from '@/assets/sound/alert.mp3';
 export default {
   name: "house_item_vue",
 
-  components: { carousel, AuctionTimer },
+  components: { Carousel, Slide, AuctionTimer },
   props: {
     data: {
       type: Object,
@@ -549,24 +548,22 @@ export default {
       }
     }
 
-  // Owl Carousel styles
-  .item-carousel :deep(.owl-dots) {
-    text-align: center;
-    padding-top: 10px;
+  // Vue3 Carousel styles
+  .item-carousel :deep(.carousel__pagination) {
+    margin-top: 10px;
   }
 
-  .item-carousel :deep(.owl-dot) {
-    display: inline-block;
+  .item-carousel :deep(.carousel__pagination-button) {
     width: 8px;
     height: 8px;
     margin: 0 4px;
     background: #0077E6;
     opacity: 0.3;
     border-radius: 50%;
-    transition: opacity 0.3s;
+    padding: 0;
   }
 
-  .item-carousel :deep(.owl-dot.active) {
+  .item-carousel :deep(.carousel__pagination-button--active) {
     opacity: 1;
   }
 </style>
