@@ -74,8 +74,10 @@
       <div class="col-7 d-flex justify-content-center">
         <button @click="updateList" class="btn btn-apply">
           Показать результаты
-          <span v-if="isLoadingCount" class="btn-loader"></span>
-          <span v-else class="btn-count">({{ filteredCount }})</span>
+          <template v-if="hasActiveFilters">
+            <span v-if="isLoadingCount" class="btn-loader"></span>
+            <span v-else class="btn-count">({{ filteredCount }})</span>
+          </template>
         </button>
       </div>
     
@@ -241,9 +243,71 @@ export default {
     this.loadFilterOptions();
   },
   computed: {
+    hasActiveFilters() {
+      // Проверяем, активны ли какие-то фильтры
+      const p = this.paramsFilter;
+      return (
+        p.type !== 'All' ||
+        (p.currentCity !== 'Алматы' && p.currentCity !== null) ||
+        p.countRoom !== null ||
+        (p.areaMin && parseFloat(p.areaMin) > 0) ||
+        (p.areaMax && parseFloat(p.areaMax) > 0) ||
+        (p.priceMin && parseFloat(p.priceMin) > 0) ||
+        (p.priceMax && parseFloat(p.priceMax) > 0) ||
+        p.checkObj.isNewHouse ||
+        p.checkObj.isBuildHouse ||
+        p.checkObj.isPhoto
+      );
+    },
     filteredCount() {
-      // Получаем отфильтрованные лоты из store
-      return this.$store.getters.filteredHouses?.length || 0;
+      // Если фильтры не активны, не показываем счетчик
+      if (!this.hasActiveFilters) {
+        return null;
+      }
+
+      // Получаем все лоты из store
+      const allHouses = this.$store.state.houseItemsMongo || [];
+      let filtered = [...allHouses];
+      const params = this.paramsFilter;
+
+      // Применяем фильтры локально
+      if (params.type && params.type !== 'All') {
+        filtered = filtered.filter(house => house.propertyType === params.type);
+      }
+
+      if (params.currentCity && params.currentCity !== 'Алматы') {
+        filtered = filtered.filter(house => house.city === params.currentCity);
+      }
+
+      if (params.countRoom) {
+        filtered = filtered.filter(house => house.countRoom === params.countRoom);
+      }
+
+      if (params.areaMin && parseFloat(params.areaMin) > 0) {
+        filtered = filtered.filter(house => house.area >= parseFloat(params.areaMin));
+      }
+
+      if (params.areaMax && parseFloat(params.areaMax) > 0) {
+        filtered = filtered.filter(house => house.area <= parseFloat(params.areaMax));
+      }
+
+      if (params.priceMin && parseFloat(params.priceMin) > 0) {
+        filtered = filtered.filter(house => house.startPrice >= parseFloat(params.priceMin));
+      }
+
+      if (params.priceMax && parseFloat(params.priceMax) > 0) {
+        filtered = filtered.filter(house => house.startPrice <= parseFloat(params.priceMax));
+      }
+
+      if (params.checkObj.isNewHouse) {
+        filtered = filtered.filter(house => house.isNewBuilding === true);
+      }
+
+      if (params.checkObj.isBuildHouse) {
+        filtered = filtered.filter(house => house.isUnderConstruction === true);
+      }
+
+      return filtered.length;
     }
   },
   watch: {
