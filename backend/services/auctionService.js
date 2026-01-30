@@ -67,6 +67,31 @@ class AuctionService {
             console.error(`Ошибка при завершении аукциона для лота ${houseId}:`, error);
         }
     }
+
+    /**
+     * Запустить проверку истекших аукционов каждые 5 секунд
+     */
+    startScheduler() {
+        console.log('Планировщик аукционов запущен: проверка каждые 5 секунд');
+
+        // Проверить сразу при запуске
+        this.checkExpiredAuctions();
+
+        // Затем проверять каждые 5 секунд
+        this.intervalId = setInterval(() => {
+            this.checkExpiredAuctions();
+        }, 5000);
+    }
+
+    /**
+     * Остановить планировщик
+     */
+    stopScheduler() {
+        if (this.intervalId) {
+            clearInterval(this.intervalId);
+            console.log('Планировщик аукционов остановлен');
+        }
+    }
 }
 
 export default AuctionService;

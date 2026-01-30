@@ -157,12 +157,8 @@ app.use((err, req, res, next) => {
 // Инициализация сервиса аукционов
 const auctionService = new AuctionService(io);
 
-// Проверять истекшие аукционы каждые 5 секунд
-setInterval(() => {
-    auctionService.checkExpiredAuctions();
-}, 5000);
-
-console.log('Сервис автоматического завершения аукционов запущен (проверка каждые 5 секунд)');
+// Запустить планировщик (проверка каждые 5 секунд)
+auctionService.startScheduler();
 
 const PORT = process.env.PORT || 3000;
 httpServer.listen(PORT, () => console.log('API with Socket.IO on', PORT));
