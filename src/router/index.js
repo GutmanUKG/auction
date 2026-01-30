@@ -52,6 +52,12 @@ const routes = [
     component: () => import('../views/CreateHousePage.vue')
   },
   {
+    path: '/my-lots',
+    name: 'MyLots',
+    component: () => import('../views/User/MyLots.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
     path: '/:id',
     name: 'detail_house',
     props: true,

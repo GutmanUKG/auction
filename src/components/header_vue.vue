@@ -15,6 +15,9 @@
           <li>
             <router-link to="/about">О нас</router-link>
           </li>
+          <li v-if="isAuthenticated">
+            <router-link to="/my-lots" class="my-lots-link">Мои лоты</router-link>
+          </li>
           <li v-if="isAdmin">
             <router-link to="/admin" class="admin-link">Админ панель</router-link>
           </li>
@@ -40,6 +43,9 @@ export default {
     }
   },
   computed: {
+    isAuthenticated() {
+      return this.$store.getters.isAuthenticated || !!localStorage.getItem('token');
+    },
     isAdmin() {
       return this.$store.getters.isAdmin
     }
@@ -77,6 +83,11 @@ export default {
             font-size: 16px;
             line-height: 24px;
             color: #000;
+
+            &.my-lots-link {
+              color: #0077E6 !important;
+              font-weight: 600 !important;
+            }
 
             &.admin-link {
               color: #4caf50 !important;
