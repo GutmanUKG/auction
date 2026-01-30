@@ -17,7 +17,19 @@ export default createStore({
       status: 'loading'
     },
     userRole: null,
-    token: localStorage.getItem('token') || null
+    token: localStorage.getItem('token') || null,
+    // Параметры фильтра
+    filterParams: {
+      type: 'All',
+      city: null,
+      countRoom: null,
+      areaMin: null,
+      areaMax: null,
+      priceMin: null,
+      priceMax: null,
+      isNewBuilding: false,
+      isUnderConstruction: false
+    }
   },
   getters: {
     hasMoreItems(state) {
@@ -26,6 +38,53 @@ export default createStore({
     isAuthenticated: (state) => !!state.token,
     isAdmin: (state) => state.userRole === 'admin',
     currentUser: (state) => state.user.data,
+    filteredHouses(state) {
+      let filtered = [...state.houseItemsMongo];
+      const params = state.filterParams;
+
+      // Фильтр по типу недвижимости
+      if (params.type && params.type !== 'All') {
+        filtered = filtered.filter(house => house.propertyType === params.type);
+      }
+
+      // Фильтр по городу
+      if (params.city) {
+        filtered = filtered.filter(house => house.city === params.city);
+      }
+
+      // Фильтр по количеству комнат
+      if (params.countRoom) {
+        filtered = filtered.filter(house => house.countRoom === params.countRoom);
+      }
+
+      // Фильтр по площади
+      if (params.areaMin !== null && params.areaMin > 0) {
+        filtered = filtered.filter(house => house.area >= params.areaMin);
+      }
+      if (params.areaMax !== null && params.areaMax > 0) {
+        filtered = filtered.filter(house => house.area <= params.areaMax);
+      }
+
+      // Фильтр по цене
+      if (params.priceMin !== null && params.priceMin > 0) {
+        filtered = filtered.filter(house => house.startPrice >= params.priceMin);
+      }
+      if (params.priceMax !== null && params.priceMax > 0) {
+        filtered = filtered.filter(house => house.startPrice <= params.priceMax);
+      }
+
+      // Фильтр по новостройкам
+      if (params.isNewBuilding) {
+        filtered = filtered.filter(house => house.isNewBuilding === true);
+      }
+
+      // Фильтр по строящимся домам
+      if (params.isUnderConstruction) {
+        filtered = filtered.filter(house => house.isUnderConstruction === true);
+      }
+
+      return filtered;
+    }
   },
   mutations: {
     PUSH_ITEMS_MONGO(state, data){
@@ -80,8 +139,24 @@ export default createStore({
       // params содержит обновленные параметры фильтрации
       if (params) {
         // Применить переданные параметры
-        Object.assign(state.paramsFilter, params);
+        Object.assign(state.filterParams, params);
       }
+    },
+    SET_FILTER_PARAMS(state, params) {
+      state.filterParams = { ...state.filterParams, ...params };
+    },
+    RESET_FILTER_PARAMS(state) {
+      state.filterParams = {
+        type: 'All',
+        city: null,
+        countRoom: null,
+        areaMin: null,
+        areaMax: null,
+        priceMin: null,
+        priceMax: null,
+        isNewBuilding: false,
+        isUnderConstruction: false
+      };
     }
   },
   actions: {
@@ -160,6 +235,12 @@ export default createStore({
     },
     logout({ commit }) {
       commit('LOGOUT');
+    },
+    applyFilter({ commit }, filterParams) {
+      commit('SET_FILTER_PARAMS', filterParams);
+    },
+    resetFilter({ commit }) {
+      commit('RESET_FILTER_PARAMS');
     }
   },
   modules: {

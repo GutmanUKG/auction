@@ -71,7 +71,7 @@
           Очистить
         </button>
       </div>
-      <div class="col-7 d-flex justify-content-center">
+      <div class="col-8 d-flex justify-content-center">
         <button @click="updateList" class="btn btn-apply">
           Показать результаты
           <template v-if="hasActiveFilters">

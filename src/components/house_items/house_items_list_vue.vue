@@ -5,7 +5,7 @@
   <template v-else>
    
     <div class="house_item_list row d-flex align-items-end g-4">
-      <House_item_vue v-for="item in houseItemsMongo" :key="item.id" :data="item"></House_item_vue>
+      <House_item_vue v-for="item in filteredHouses" :key="item.id" :data="item"></House_item_vue>
     </div>
   </template>
 </template>
@@ -43,6 +43,7 @@ export default {
   },
   computed: {
     ...mapState(['houseItemsMongo', 'visibleItems', 'isLoading']),
+    ...mapGetters(['filteredHouses']),
   },
   mounted() {
 

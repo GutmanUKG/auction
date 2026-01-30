@@ -338,3 +338,73 @@ export const getAdminStats = asyncHandler(async (req, res) => {
     });
 });
 
+// Получить опции для фильтра (динамические данные из БД)
+export const getFilterOptions = asyncHandler(async (req, res) => {
+    // Получаем уникальные типы недвижимости (только те, что есть в БД)
+    const propertyTypesResult = await db('houses')
+        .distinct('property_type')
+        .whereNotNull('property_type')
+        .where('property_type', '!=', '');
+
+    const propertyTypes = propertyTypesResult
+        .map(row => row.property_type)
+        .filter(Boolean);
+
+    // Получаем уникальные города
+    const citiesResult = await db('houses')
+        .distinct('city')
+        .whereNotNull('city')
+        .where('city', '!=', '');
+
+    const cities = citiesResult
+        .map(row => row.city)
+        .filter(Boolean);
+
+    // Получаем уникальные страны
+    const countriesResult = await db('houses')
+        .distinct('country')
+        .whereNotNull('country')
+        .where('country', '!=', '');
+
+    const countries = countriesResult
+        .map(row => row.country)
+        .filter(Boolean);
+
+    // Получаем диапазоны цен
+    const priceRangeResult = await db('houses')
+        .min('start_price as minPrice')
+        .max('start_price as maxPrice')
+        .first();
+
+    // Получаем диапазоны площади
+    const areaRangeResult = await db('houses')
+        .min('area as minArea')
+        .max('area as maxArea')
+        .first();
+
+    // Получаем уникальные количества комнат
+    const roomCountsResult = await db('houses')
+        .distinct('count_room')
+        .whereNotNull('count_room')
+        .orderBy('count_room', 'asc');
+
+    const roomCounts = roomCountsResult
+        .map(row => row.count_room)
+        .filter(count => count > 0);
+
+    return res.json({
+        propertyTypes,
+        cities,
+        countries,
+        priceRange: {
+            min: priceRangeResult?.minPrice || 0,
+            max: priceRangeResult?.maxPrice || 0
+        },
+        areaRange: {
+            min: areaRangeResult?.minArea || 0,
+            max: areaRangeResult?.maxArea || 0
+        },
+        roomCounts
+    });
+});
+

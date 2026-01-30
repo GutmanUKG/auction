@@ -5,34 +5,17 @@
         <div class="city_list-wrapper">
           <div class="city-name" @click="showList(1)">
             <img :src="iconGeo" alt=""> {{currentCity}}
-          </div>,
-          <div class="city-name" @click="showList(2)">
-            {{currentStreet}}
           </div>
+          
         </div>
       </div>
       <ul class="city_list-city" v-if="step == 1">
-        <li @click="currentCitySelect('Усть-Каменогорск')">
-          Усть-Каменогорск
-        </li>
-        <li @click="currentCitySelect('Алматы')">
-          Алматы
-        </li>
-        <li @click="currentCitySelect('Астана')">
-          Астана
+        <li v-for="city in cities" :key="city" @click="currentCitySelect(city)">
+          {{ city }}
         </li>
       </ul>
-      <ul class="city_list-street" v-if="step == 2">
-        <li @click="currentStreetSelect('Бостандыкский р-н')">
-          Бостандыкский р-н
-        </li>
-        <li @click="currentStreetSelect('Назарбаевский р-н')">
-          Назарбаевский р-н
-        </li>
-        <li  @click="currentStreetSelect('Уланский р-н')">
-          Уланский р-н
-        </li>
-      </ul>
+     
+    
     </div>
 </template>
 
@@ -42,6 +25,12 @@ import iconGeo from '@/assets/icns/MapPin.svg'
 export default {
   name: "city_list",
   components: {},
+  props: {
+    cities: {
+      type: Array,
+      default: () => ['Алматы', 'Астана', 'Усть-Каменогорск']
+    }
+  },
   data: ()=>{
     return {
       currentCity: "Алматы",

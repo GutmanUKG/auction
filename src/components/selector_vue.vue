@@ -6,13 +6,16 @@
     <div class="d-flex flex-column">
       <div class="d-flex input-wrapper">
         <label for="min">
+          От:
           <input type="text" id="min" :placeholder="min" :value="formatNumber(areaSize.selectedMin)" @input="SelectInputMin">
         </label>
         <label for="max">
+          До:
           <input type="text" id="max" :placeholder="max" :value="formatNumber(areaSize.selectedMax)" @input="SelectInputMax">
         </label>
       </div>
         <div class="input-range">
+          
           <input type="range" id="min-range" @input="SelectInputMin" :value="areaSize.selectedMin" :max="max" min="0">
           <input type="range" id="max-range" @input="SelectInputMax" :value="areaSize.selectedMax" :max="max">
         </div>
@@ -109,11 +112,12 @@ export default {
     }
   }
   #min-range{
-    transform:rotate(180deg);
+    
   }
   .input-range{
     display: flex;
     align-items: center;
+    gap: 1rem;
     input{
       width: 50%;
     }

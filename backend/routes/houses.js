@@ -8,7 +8,8 @@ import {
     placeBid,
     getAllItemsAdmin,
     getHouseStats,
-    getAdminStats
+    getAdminStats,
+    getFilterOptions
 } from '../controllers/HouseController.js';
 import auth from '../middleware/auth.js';
 import adminAuth from '../middleware/adminAuth.js';
@@ -18,6 +19,7 @@ const router = express.Router();
 
 // Публичные маршруты (с опциональной аутентификацией для показа статуса участия)
 router.get('/houses', optionalAuth, getAllItems);
+router.get('/houses/filter/options', getFilterOptions);
 router.get('/houses/:id', optionalAuth, getItem);
 
 // Защищенные маршруты (требуют авторизации)
