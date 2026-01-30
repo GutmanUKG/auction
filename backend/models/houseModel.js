@@ -23,6 +23,9 @@ function mapRow(row) {
         auctionStartDate: row.auction_start_date,
         auctionEndDate: row.auction_end_date,
         isActive: Boolean(row.is_active),
+        propertyType: row.property_type,
+        isNewBuilding: Boolean(row.is_new_building),
+        isUnderConstruction: Boolean(row.is_under_construction),
         viewsCount: row.views_count,
         userCount: row.user_count,
         userId: row.user_id,
@@ -86,6 +89,9 @@ export async function create(data) {
         auctionStartDate,
         auctionEndDate,
         isActive = true,
+        propertyType,
+        isNewBuilding = false,
+        isUnderConstruction = false,
         viewsCount = 0,
         userCount = 0,
         userId
@@ -111,6 +117,9 @@ export async function create(data) {
         auction_start_date: auctionStartDate || null,
         auction_end_date: auctionEndDate || null,
         is_active: isActive,
+        property_type: propertyType || null,
+        is_new_building: isNewBuilding,
+        is_under_construction: isUnderConstruction,
         views_count: viewsCount,
         user_count: userCount,
         user_id: userId
@@ -141,6 +150,9 @@ export async function update(id, data) {
     if (data.auctionStartDate !== undefined) updateData.auction_start_date = data.auctionStartDate;
     if (data.auctionEndDate !== undefined) updateData.auction_end_date = data.auctionEndDate;
     if (data.isActive !== undefined) updateData.is_active = data.isActive;
+    if (data.propertyType !== undefined) updateData.property_type = data.propertyType;
+    if (data.isNewBuilding !== undefined) updateData.is_new_building = data.isNewBuilding;
+    if (data.isUnderConstruction !== undefined) updateData.is_under_construction = data.isUnderConstruction;
     if (data.viewsCount !== undefined) updateData.views_count = data.viewsCount;
     if (data.userCount !== undefined) updateData.user_count = data.userCount;
 

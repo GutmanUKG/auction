@@ -20,7 +20,10 @@ export const addItem = asyncHandler(async (req, res) => {
         countRoom,
         year,
         auctionStartDate,
-        auctionEndDate
+        auctionEndDate,
+        propertyType,
+        isNewBuilding,
+        isUnderConstruction
     } = req.body;
 
     const house = await houseModel.create({
@@ -40,6 +43,9 @@ export const addItem = asyncHandler(async (req, res) => {
         auctionStartDate: auctionStartDate || null,
         auctionEndDate: auctionEndDate || null,
         isActive: true,
+        propertyType: propertyType || null,
+        isNewBuilding: isNewBuilding || false,
+        isUnderConstruction: isUnderConstruction || false,
         userId: req.userId
     });
 
@@ -261,6 +267,9 @@ export const getAllItemsAdmin = asyncHandler(async (req, res) => {
             auctionStartDate: row.auction_start_date,
             auctionEndDate: row.auction_end_date,
             isActive: Boolean(row.is_active),
+            propertyType: row.property_type,
+            isNewBuilding: Boolean(row.is_new_building),
+            isUnderConstruction: Boolean(row.is_under_construction),
             viewsCount: row.views_count,
             userCount: row.user_count,
             userId: row.user_id,

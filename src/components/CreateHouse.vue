@@ -150,6 +150,43 @@
               >
             </div>
           </div>
+
+          <div class="form-group">
+            <label for="propertyType">Тип недвижимости</label>
+            <select
+              id="propertyType"
+              v-model="formData.propertyType"
+              class="form-control"
+            >
+              <option value="">Не выбрано</option>
+              <option value="Квартира">Квартира</option>
+              <option value="Дом">Дом</option>
+              <option value="Коттедж">Коттедж</option>
+              <option value="Таунхаус">Таунхаус</option>
+              <option value="Коммерческая">Коммерческая недвижимость</option>
+              <option value="Земельный участок">Земельный участок</option>
+            </select>
+          </div>
+
+          <div class="form-group checkbox-group">
+            <label class="checkbox-label">
+              <input
+                type="checkbox"
+                v-model="formData.isNewBuilding"
+              >
+              <span>Новостройка</span>
+            </label>
+          </div>
+
+          <div class="form-group checkbox-group">
+            <label class="checkbox-label">
+              <input
+                type="checkbox"
+                v-model="formData.isUnderConstruction"
+              >
+              <span>В строящихся домах</span>
+            </label>
+          </div>
         </div>
 
         <div class="form-section">
@@ -278,6 +315,9 @@ export default {
         year: null,
         auctionStartDate: '',
         auctionEndDate: '',
+        propertyType: '',
+        isNewBuilding: false,
+        isUnderConstruction: false,
         mainImage: '',
         images: []
       },
@@ -503,6 +543,49 @@ export default {
 .form-group textarea {
   resize: vertical;
   min-height: 60px;
+}
+
+.form-group select {
+  width: 100%;
+  padding: 12px 16px;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  color: #333333;
+  background: #f8f9fa;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  outline: none;
+  transition: all 0.3s;
+  box-sizing: border-box;
+  cursor: pointer;
+}
+
+.form-group select:focus {
+  background: white;
+  border-color: #0077E6;
+  box-shadow: 0 0 0 3px rgba(0, 119, 230, 0.1);
+}
+
+.checkbox-group {
+  display: flex;
+  align-items: center;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  color: #333333;
+  user-select: none;
+}
+
+.checkbox-label input[type="checkbox"] {
+  width: auto;
+  margin-right: 8px;
+  cursor: pointer;
 }
 
 .form-hint {

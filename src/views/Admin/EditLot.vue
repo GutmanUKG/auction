@@ -149,6 +149,43 @@
               >
             </div>
           </div>
+
+          <div class="form-group">
+            <label for="propertyType">Тип недвижимости</label>
+            <select
+              id="propertyType"
+              v-model="formData.propertyType"
+              class="form-control"
+            >
+              <option value="">Не выбрано</option>
+              <option value="Квартира">Квартира</option>
+              <option value="Дом">Дом</option>
+              <option value="Коттедж">Коттедж</option>
+              <option value="Таунхаус">Таунхаус</option>
+              <option value="Коммерческая">Коммерческая недвижимость</option>
+              <option value="Земельный участок">Земельный участок</option>
+            </select>
+          </div>
+
+          <div class="form-group checkbox-group">
+            <label class="checkbox-label">
+              <input
+                type="checkbox"
+                v-model="formData.isNewBuilding"
+              >
+              <span>Новостройка</span>
+            </label>
+          </div>
+
+          <div class="form-group checkbox-group">
+            <label class="checkbox-label">
+              <input
+                type="checkbox"
+                v-model="formData.isUnderConstruction"
+              >
+              <span>В строящихся домах</span>
+            </label>
+          </div>
         </div>
 
         <!-- Изображения -->
@@ -294,6 +331,9 @@ export default {
         area: 0,
         countRoom: 0,
         year: null,
+        propertyType: '',
+        isNewBuilding: false,
+        isUnderConstruction: false,
         mainImage: '',
         images: [],
         isActive: true
@@ -340,6 +380,9 @@ export default {
             area: lot.area || 0,
             countRoom: lot.countRoom || 0,
             year: lot.year || null,
+            propertyType: lot.propertyType || '',
+            isNewBuilding: lot.isNewBuilding || false,
+            isUnderConstruction: lot.isUnderConstruction || false,
             mainImage: lot.mainImage || '',
             images: lot.images || [],
             isActive: lot.isActive !== undefined ? lot.isActive : true
@@ -561,6 +604,27 @@ export default {
 .form-group textarea {
   resize: vertical;
   font-family: inherit;
+}
+
+.form-group select {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #dfe6e9;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: border-color 0.3s;
+  cursor: pointer;
+  background-color: white;
+}
+
+.form-group select:focus {
+  outline: none;
+  border-color: #3498db;
+}
+
+.checkbox-group {
+  display: flex;
+  align-items: center;
 }
 
 .form-hint {
