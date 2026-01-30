@@ -62,12 +62,12 @@
 
           <div v-else class="lots-grid">
             <div v-for="lot in participatingLots" :key="lot.id" class="lot-card">
-              <router-link :to="`/lot/${lot.id}`" class="lot-image">
+              <router-link :to="`/${lot.id}`" class="lot-image">
                 <img :src="getImgUrl(lot.mainImage)" :alt="lot.name" />
               </router-link>
 
               <div class="lot-content">
-                <router-link :to="`/lot/${lot.id}`" class="lot-title">
+                <router-link :to="`/${lot.id}`" class="lot-title">
                   {{ lot.name }}
                 </router-link>
 

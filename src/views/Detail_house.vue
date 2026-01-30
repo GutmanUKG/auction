@@ -10,7 +10,7 @@
         <!-- Левая колонка: Галерея изображений -->
         <div class="detail-gallery">
           <h1 class="detail-title">{{ detailHouse.name }}</h1>
-          <div class="col-8">
+          <div class="">
 
           
     <!-- Галерея изображений -->
