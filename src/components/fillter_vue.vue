@@ -1,50 +1,38 @@
 <template>
   <div class="filter">
     <div class="filter_top">
-      <ul>
+      <ul v-if="!isLoadingFilterOptions">
         <li>
           <a href=""
                 @click.prevent="handleFilter('All')"
                 :class="{active: activeFilter === 'All'}" > Все </a>
         </li>
-        <li> <a href=""
-                @click.prevent="handleFilter('Flat')"
-                :class="{active: activeFilter === 'Flat'}">Квартира</a>
-        </li>
-        <li>
+        <li v-for="propertyType in filterOptions.propertyTypes" :key="propertyType">
           <a href=""
-             :class="{active: activeFilter === 'House'}"
-             @click.prevent="handleFilter('House')">Дом</a>
-        </li>
-        <li>
-          <a href=""
-             :class="{active: activeFilter === 'Commercial'}"
-              @click.prevent="handleFilter('Commercial')">Коммерческая недвижимость</a>
-        </li>
-        <li> <a href=""
-              :class="{active: activeFilter === 'Business'}"
-              @click.prevent="handleFilter('Business')">Действующий бизнес</a>
-        </li>
-        <li> <a href=""
-                :class="{active: activeFilter === 'Land'}"
-                @click.prevent="handleFilter('Land')">Земельный участок</a>
-        </li>
-        <li> <a href=""
-                :class="{active:activeFilter === 'Parking'}"
-                @click.prevent="handleFilter('Parking')">Паркинг</a>
+                @click.prevent="handleFilter(propertyType)"
+                :class="{active: activeFilter === propertyType}">{{ propertyType }}</a>
         </li>
       </ul>
+      <div v-else class="loading-filters">
+        Загрузка фильтров...
+      </div>
     </div>
      <div class="filter_body row">
        <div class="col-5">
-         <City_list @currentCitySelect="updateCity" @currentStreetSelect="updateStreet"></City_list>
-         <div class="filter_room-wrapper">
+         <City_list
+           :cities="filterOptions.cities"
+           @currentCitySelect="updateCity"
+           @currentStreetSelect="updateStreet">
+         </City_list>
+         <div class="filter_room-wrapper" v-if="filterOptions.roomCounts.length > 0">
            <ul class="filter_room_count">
-             <li @click="updateCurrentRoom(1)" :class="{active: paramsFilter.countRoom == 1 || paramsFilter.countRoom == null}">1</li>
-             <li @click="updateCurrentRoom(2)" :class="{active: paramsFilter.countRoom == 2}">2</li>
-             <li @click="updateCurrentRoom(3)" :class="{active: paramsFilter.countRoom == 3}">3</li>
-             <li @click="updateCurrentRoom(4)" :class="{active: paramsFilter.countRoom == 4}">4</li>
-             <li @click="updateCurrentRoom(5)" :class="{active: paramsFilter.countRoom == 5}">5</li>
+             <li
+               v-for="roomCount in filterOptions.roomCounts"
+               :key="roomCount"
+               @click="updateCurrentRoom(roomCount)"
+               :class="{active: paramsFilter.countRoom == roomCount || (paramsFilter.countRoom == null && roomCount === filterOptions.roomCounts[0])}">
+               {{ roomCount }}
+             </li>
            </ul>
            – комнатная
          </div>
@@ -55,10 +43,22 @@
           </div>
        </div>
       <div class="col-3">
-        <Selector_vue title="Площадь, м2" :min="120" type="м2" :max="560" @areaChange="updateSelectArea"></Selector_vue>
+        <Selector_vue
+          title="Площадь, м2"
+          :min="filterOptions.areaRange.min"
+          type="м2"
+          :max="filterOptions.areaRange.max"
+          @areaChange="updateSelectArea">
+        </Selector_vue>
       </div>
        <div class="col-4">
-         <Selector_vue title="Цена, ₸ " :min="5000000" :max="13000000" type="₸"  @areaChange="updateSelectPrice"></Selector_vue>
+         <Selector_vue
+           title="Цена, ₸ "
+           :min="filterOptions.priceRange.min"
+           :max="filterOptions.priceRange.max"
+           type="₸"
+           @areaChange="updateSelectPrice">
+         </Selector_vue>
        </div>
      </div>
     <div class="filter_footer row align-center d-flex">
@@ -72,11 +72,13 @@
         </button>
       </div>
       <div class="col-7 d-flex justify-content-center">
-        <button @click="updateList" class="btn btn-apply">Показать результаты</button>
+        <button @click="updateList" class="btn btn-apply">
+          Показать результаты
+          <span v-if="isLoadingCount" class="btn-loader"></span>
+          <span v-else class="btn-count">({{ filteredCount }})</span>
+        </button>
       </div>
-      <div class="col-2 tabs-show">
-        Плиткой / на карте
-      </div>
+    
     </div>
 
 
@@ -87,6 +89,8 @@
 import City_list from "@/components/city_list";
 import Selector_vue from "@/components/selector_vue";
 import Check_filter_vue from "@/components/check_filter_vue";
+import axios from '../axios';
+
 export default {
   name: "fillter_vue",
   components: {Check_filter_vue, Selector_vue, City_list},
@@ -109,20 +113,70 @@ export default {
         }
 
       },
-      showClearBtn: true
+      showClearBtn: true,
+      // Динамические данные фильтра из БД
+      filterOptions: {
+        propertyTypes: [],
+        cities: [],
+        countries: [],
+        priceRange: { min: 0, max: 0 },
+        areaRange: { min: 0, max: 0 },
+        roomCounts: []
+      },
+      isLoadingFilterOptions: false,
+      isLoadingCount: false
       }
   },
   methods: {
+    async loadFilterOptions() {
+      try {
+        this.isLoadingFilterOptions = true;
+        const response = await axios.get('/houses/filter/options');
+
+        // Преобразуем строковые значения в числа
+        this.filterOptions = {
+          ...response.data,
+          priceRange: {
+            min: parseFloat(response.data.priceRange.min) || 0,
+            max: parseFloat(response.data.priceRange.max) || 0
+          },
+          areaRange: {
+            min: parseFloat(response.data.areaRange.min) || 0,
+            max: parseFloat(response.data.areaRange.max) || 0
+          }
+        };
+
+        console.log('Filter options loaded:', this.filterOptions);
+
+        // Обновляем диапазоны в компонентах селекторов
+        this.$nextTick(() => {
+          // Данные загружены, компоненты обновятся через props
+        });
+      } catch (error) {
+        console.error('Error loading filter options:', error);
+      } finally {
+        this.isLoadingFilterOptions = false;
+      }
+    },
     ClearFilter(){
       this.paramsFilter = {
         type: 'All',
         currentCity : 'Алматы',
         currentCityStreet: 'Бостандыкский р-н',
-        countRoom: null
+        countRoom: null,
+        areaMin: "0",
+        areaMax: "0",
+        priceMin: "0",
+        priceMax: "0",
+        checkObj: {
+          isPhoto: false,
+          isNewHouse: false,
+          isBuildHouse: false
+        }
       }
       this.showClearBtn = false
-      this.$store.commit('updateParamsFilter', this.paramsFilter);
-      this.activeFilter = this.paramsFilter.type;
+      this.$store.dispatch('resetFilter');
+      this.activeFilter = 'All';
     },
     handleFilter (filter){
       this.activeFilter = filter;
@@ -143,7 +197,22 @@ export default {
       this.showClearBtn = true
     },
     updateList(){
-      console.log(this.paramsFilter)
+      // Применяем фильтр через store
+      const filterParams = {
+        type: this.paramsFilter.type,
+        city: this.paramsFilter.currentCity === 'Алматы' ? null : this.paramsFilter.currentCity,
+        countRoom: this.paramsFilter.countRoom,
+        areaMin: parseFloat(this.paramsFilter.areaMin) || null,
+        areaMax: parseFloat(this.paramsFilter.areaMax) || null,
+        priceMin: parseFloat(this.paramsFilter.priceMin) || null,
+        priceMax: parseFloat(this.paramsFilter.priceMax) || null,
+        isNewBuilding: this.paramsFilter.checkObj.isNewHouse,
+        isUnderConstruction: this.paramsFilter.checkObj.isBuildHouse
+      };
+
+      console.log('Applying filter:', filterParams);
+      this.$store.dispatch('applyFilter', filterParams);
+      console.log('Filter applied, check store state');
     },
     updateSelectArea(area){
       this.showClearBtn = true;
@@ -169,10 +238,29 @@ export default {
     }
   },
   mounted() {
-
+    this.loadFilterOptions();
   },
   computed: {
-
+    filteredCount() {
+      // Получаем отфильтрованные лоты из store
+      return this.$store.getters.filteredHouses?.length || 0;
+    }
+  },
+  watch: {
+    paramsFilter: {
+      handler() {
+        // Показываем лоадер при изменении параметров
+        this.isLoadingCount = true;
+        setTimeout(() => {
+          this.isLoadingCount = false;
+        }, 300);
+      },
+      deep: true
+    },
+    '$store.state.isLoading'(newVal) {
+      // Синхронизируем лоадер с состоянием загрузки из store
+      this.isLoadingCount = newVal;
+    }
   }
 }
 </script>
@@ -192,7 +280,9 @@ export default {
         padding: 0;
         margin: 0;
         display: flex;
-        justify-content: space-between;
+        justify-content: flex-start;
+        gap: 1rem;
+        flex-wrap: wrap;
         align-items: center;
         li{
           list-style: none;
@@ -306,5 +396,33 @@ export default {
         transform: rotate(180deg)
       }
     }
+  }
+  .loading-filters{
+    padding: 20px;
+    text-align: center;
+    font-family: 'Inter',sans-serif;
+    font-size: 14px;
+    color: rgba(51, 51, 51, 0.75);
+  }
+
+  .btn-count{
+    margin-left: 8px;
+    font-weight: 600;
+    opacity: 0.9;
+  }
+
+  .btn-loader {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    margin-left: 8px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top-color: #ffffff;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
   }
 </style>
