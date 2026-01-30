@@ -3,16 +3,17 @@
   
     <div class="item_slider" :id="myId">
       <div class="item-imgs-slider">
-        <swiper 
-         class="swiper"
-  :modules="modules"
-  :pagination="{ clickable: true }"
+        <carousel
+         class="item-carousel"
+  :items="1"
+  :dots="true"
+  :nav="false"
+  :loop="true"
   v-if="data.images && data.images.length > 1">
-          <swiper-slide class="slide" :key="key" v-for="(item ,key) in data.images">
+          <div class="slide" :key="key" v-for="(item ,key) in data.images">
             <img :src="getImgUrl(item)" :alt="data.name"  >
-          
-          </swiper-slide>
-        </swiper>
+          </div>
+        </carousel>
         <div class="item-img" v-else-if="data.mainImage">
           <img :src="getImgUrl(data.mainImage)" :alt="data.name">
         </div>
@@ -117,10 +118,7 @@
 </template>
 
 <script>
-import { Swiper, SwiperSlide } from 'swiper/vue';
-import { Pagination } from 'swiper';
-import 'swiper/css'
-import 'swiper/css/pagination'
+import carousel from 'v-owl-carousel';
 import noImg from '@/assets/no-img.jpg'
 import { formatNumber as formatNum, getImgUrl as getImageUrl } from '@/utils/helpers';
 import AuctionTimer from '@/components/AuctionTimer.vue';
@@ -129,7 +127,7 @@ import audioSrc  from '@/assets/sound/alert.mp3';
 export default {
   name: "house_item_vue",
 
-  components: { Swiper, SwiperSlide, AuctionTimer },
+  components: { carousel, AuctionTimer },
   props: {
     data: {
       type: Object,
@@ -139,7 +137,6 @@ export default {
     return{
       audioSrc,
       imgsList : [],
-      modules: [Pagination],
       date: '',
       noImg,
       activePeople :0,
@@ -551,4 +548,25 @@ export default {
         background: rgba(229, 83, 0, 0.25);
       }
     }
+
+  // Owl Carousel styles
+  .item-carousel :deep(.owl-dots) {
+    text-align: center;
+    padding-top: 10px;
+  }
+
+  .item-carousel :deep(.owl-dot) {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    margin: 0 4px;
+    background: #0077E6;
+    opacity: 0.3;
+    border-radius: 50%;
+    transition: opacity 0.3s;
+  }
+
+  .item-carousel :deep(.owl-dot.active) {
+    opacity: 1;
+  }
 </style>

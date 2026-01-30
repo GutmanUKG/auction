@@ -16,7 +16,7 @@
     "core-js": "^3.8.3",
     "html2canvas": "^1.4.1",
     "socket.io-client": "^4.6.1",
-    "swiper": "^9.4.1",
+    "v-owl-carousel": "^1.0.8",
     "vue": "^3.2.13",
     "vue-router": "^4.0.3",
     "vue3-slick-carousel": "^1.0.6",

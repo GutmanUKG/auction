@@ -10,27 +10,26 @@
         <!-- Левая колонка: Галерея изображений -->
         <div class="detail-gallery">
           <h1 class="detail-title">{{ detailHouse.name }}</h1>
-          <div class="">
+          <div class="col-8">
 
           
     <!-- Галерея изображений -->
           <template v-if="images.length > 0">
-            <swiper
-              class="detail-swiper"
-              :slides-per-view="1"
-              :space-between="10"
-              :pagination="{ clickable: true, dynamicBullets: true }"
-              :navigation="true"
+            <carousel
+              class="detail-carousel"
+              :items="1"
+              :margin="10"
+              :nav="true"
+              :dots="true"
               :loop="images.length > 1"
-              :modules="modules"
+              :autoplay="false"
             >
-              <swiper-slide v-for="(image, idx) in images" :key="idx"
-              style="width: 100%;">
+              <div v-for="(image, idx) in images" :key="idx">
                 <div class="slide-container">
                   <img :src="getImgUrl(image)" :alt="detailHouse.name" class="gallery-image">
                 </div>
-              </swiper-slide>
-            </swiper>
+              </div>
+            </carousel>
           </template>
           <template v-else-if="detailHouse.mainImage">
             <div class="single-image">
@@ -182,11 +181,7 @@
 </template>
 
 <script>
-import { Swiper, SwiperSlide } from 'swiper/vue';
-import { Pagination , Navigation} from 'swiper';
-import 'swiper/css';
-import 'swiper/css/pagination';
-import 'swiper/css/navigation';
+import carousel from 'v-owl-carousel';
 import noImg from '@/assets/no-img.jpg';
 import { mapState, mapGetters } from 'vuex';
 import { getImgUrl, formatNumber } from '@/utils/helpers';
@@ -209,14 +204,12 @@ export default {
       isShowLose: false,
       isLoseText: 'Вас перебили!',
       isAuctionExpired: false,
-      userParticipation: null,
-      modules: [Navigation, Pagination],
+      userParticipation: null
     };
   },
 
   components: {
-    Swiper,
-    SwiperSlide,
+    carousel,
     AuctionTimer
   },
 
@@ -473,27 +466,33 @@ export default {
   position: relative;
 }
 
-.detail-swiper :deep(.swiper-button-next),
-.detail-swiper :deep(.swiper-button-prev) {
+.detail-carousel :deep(.owl-nav button) {
   color: #2196f3;
   background: rgba(255, 255, 255, 0.9);
   width: 40px;
   height: 40px;
   border-radius: 50%;
-}
-
-.detail-swiper :deep(.swiper-button-next):after,
-.detail-swiper :deep(.swiper-button-prev):after {
   font-size: 20px;
   font-weight: bold;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
 }
 
-.detail-swiper :deep(.swiper-pagination-bullet) {
+.detail-carousel :deep(.owl-nav button.owl-prev) {
+  left: 10px;
+}
+
+.detail-carousel :deep(.owl-nav button.owl-next) {
+  right: 10px;
+}
+
+.detail-carousel :deep(.owl-dot) {
   background: #2196f3;
   opacity: 0.5;
 }
 
-.detail-swiper :deep(.swiper-pagination-bullet-active) {
+.detail-carousel :deep(.owl-dot.active) {
   opacity: 1;
 }
 
