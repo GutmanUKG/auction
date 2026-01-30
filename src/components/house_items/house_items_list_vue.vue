@@ -53,7 +53,7 @@ export default {
 <style scoped>
   .house_item_list{
     margin-top: 70px;
-   
+  
 
   }
 

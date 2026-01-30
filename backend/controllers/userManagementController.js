@@ -2,6 +2,7 @@ import asyncHandler from '../utils/asyncHandler.js';
 import { HttpError } from '../utils/httpError.js';
 import * as userModel from '../models/userModel.js';
 import { hashPassword } from '../utils/hash.js';
+import { db } from '../db.js';
 
 // Получить всех пользователей
 export const getAllUsers = asyncHandler(async (req, res) => {
@@ -14,8 +15,32 @@ export const getAllUsers = asyncHandler(async (req, res) => {
     const users = await userModel.getAll(filters);
     const total = await userModel.count(filters);
 
+    // Для каждого пользователя получаем информацию о лотах
+    const usersWithLots = await Promise.all(users.map(async (user) => {
+        // Получаем список лотов, в которых участвует пользователь
+        const participatedLots = await db('lot_participants')
+            .leftJoin('houses', 'lot_participants.house_id', 'houses.id')
+            .where('lot_participants.user_id', user.id)
+            .select(
+                'houses.id',
+                'houses.name',
+                'lot_participants.bid_amount',
+                'lot_participants.participated_at'
+            )
+            .orderBy('lot_participants.participated_at', 'desc');
+
+        // Подсчитываем количество уникальных лотов
+        const lotsCount = participatedLots.length;
+
+        return {
+            ...user,
+            participatedLots: participatedLots,
+            lotsCount: lotsCount
+        };
+    }));
+
     return res.json({
-        users,
+        users: usersWithLots,
         total
     });
 });

@@ -1,6 +1,7 @@
 import asyncHandler from '../utils/asyncHandler.js';
 import { HttpError } from '../utils/httpError.js';
 import * as houseModel from '../models/houseModel.js';
+import * as lotParticipantModel from '../models/lotParticipantModel.js';
 import { db } from '../db.js';
 
 export const addItem = asyncHandler(async (req, res) => {
@@ -18,7 +19,8 @@ export const addItem = asyncHandler(async (req, res) => {
         area,
         countRoom,
         year,
-        auctionStartDate
+        auctionStartDate,
+        auctionEndDate
     } = req.body;
 
     const house = await houseModel.create({
@@ -36,6 +38,8 @@ export const addItem = asyncHandler(async (req, res) => {
         countRoom,
         year: year || null,
         auctionStartDate: auctionStartDate || null,
+        auctionEndDate: auctionEndDate || null,
+        isActive: true,
         userId: req.userId
     });
 
@@ -44,7 +48,47 @@ export const addItem = asyncHandler(async (req, res) => {
 
 export const getAllItems = asyncHandler(async (req, res) => {
     const items = await houseModel.getAll();
-    return res.json(items);
+
+    // Фильтровать только активные лоты
+    const activeItems = items.filter(item => {
+        // Проверка активности
+        if (!item.isActive) return false;
+
+        // Дополнительная проверка времени окончания
+        if (item.auctionEndDate && new Date(item.auctionEndDate) < new Date()) {
+            return false;
+        }
+
+        return true;
+    });
+
+    // Добавляем информацию об участии для авторизованного пользователя
+    if (req.userId) {
+        const itemsWithParticipation = await Promise.all(activeItems.map(async (item) => {
+            const participant = await db('lot_participants')
+                .where({ house_id: item.id, user_id: req.userId })
+                .first();
+
+            if (participant) {
+                const isWinning = item.winnerUser && item.winnerUser.id === req.userId;
+                return {
+                    ...item,
+                    userParticipation: {
+                        isParticipating: true,
+                        isWinning: isWinning,
+                        lastBidAmount: parseFloat(participant.bid_amount),
+                        participatedAt: participant.participated_at
+                    }
+                };
+            }
+
+            return item;
+        }));
+
+        return res.json(itemsWithParticipation);
+    }
+
+    return res.json(activeItems);
 });
 
 export const getItem = asyncHandler(async (req, res) => {
@@ -58,7 +102,29 @@ export const getItem = asyncHandler(async (req, res) => {
     // Увеличиваем счетчик просмотров
     await houseModel.incrementViewsCount(id);
 
-    return res.json(item);
+    // Проверяем участие текущего пользователя (если авторизован)
+    console.log('getItem: userId =', req.userId, 'for house', id);
+    let userParticipation = null;
+    if (req.userId) {
+        const participant = await db('lot_participants')
+            .where({ house_id: id, user_id: req.userId })
+            .first();
+
+        if (participant) {
+            const isWinning = item.winnerUser && item.winnerUser.id === req.userId;
+            userParticipation = {
+                isParticipating: true,
+                isWinning: isWinning,
+                lastBidAmount: parseFloat(participant.bid_amount),
+                participatedAt: participant.participated_at
+            };
+        }
+    }
+
+    return res.json({
+        ...item,
+        userParticipation
+    });
 });
 
 export const updateItem = asyncHandler(async (req, res) => {
@@ -105,6 +171,16 @@ export const placeBid = asyncHandler(async (req, res) => {
         throw new HttpError(404, 'Объект недвижимости не найден');
     }
 
+    // Проверка активности аукциона
+    if (!item.isActive) {
+        throw new HttpError(400, 'Аукцион завершен');
+    }
+
+    // Проверка времени окончания
+    if (item.auctionEndDate && new Date(item.auctionEndDate) < new Date()) {
+        throw new HttpError(400, 'Время аукциона истекло');
+    }
+
     const currentPrice = item.currentPrice || item.startPrice;
 
     if (bidAmount <= currentPrice) {
@@ -113,8 +189,15 @@ export const placeBid = asyncHandler(async (req, res) => {
 
     await houseModel.update(id, {
         currentPrice: bidAmount,
-        userCount: item.userCount + 1
+        userCount: item.userCount + 1,
+        winnerUser: {
+            id: req.userId,
+            username: req.userFullName || 'Пользователь'
+        }
     });
+
+    // Добавить участника в таблицу lot_participants
+    await lotParticipantModel.addParticipant(id, req.userId, bidAmount);
 
     const updatedItem = await houseModel.getById(id);
     return res.json(updatedItem);
@@ -176,6 +259,8 @@ export const getAllItemsAdmin = asyncHandler(async (req, res) => {
             countRoom: row.count_room,
             year: row.year,
             auctionStartDate: row.auction_start_date,
+            auctionEndDate: row.auction_end_date,
+            isActive: Boolean(row.is_active),
             viewsCount: row.views_count,
             userCount: row.user_count,
             userId: row.user_id,

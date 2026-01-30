@@ -31,6 +31,9 @@ export default createStore({
     PUSH_ITEMS_MONGO(state, data){
       state.houseItemsMongo = state.houseItemsMongo.concat(data);
     },
+    SET_HOUSE_ITEMS_MONGO(state, data){
+      state.houseItemsMongo = data;
+    },
     setHouseItems(state, data) {
       state.houseItems = data;
     },
@@ -88,7 +91,10 @@ export default createStore({
         method: 'GET'
       })
           .then((res) => {
-            commit('PUSH_ITEMS_MONGO', res.data);
+            // Используем SET_HOUSE_ITEMS_MONGO чтобы заменить массив, а не добавлять к нему
+            commit('SET_HOUSE_ITEMS_MONGO', res.data);
+            commit('setHouseItems', res.data);
+            commit('UPDATE_VISIBLE_ITEMS');
             commit('SET_LOADING', false);
           })
 

@@ -104,6 +104,22 @@
           <div class="auction-card">
             <h2>Торги</h2>
 
+            <!-- Показываем таймер только если аукцион уже начался -->
+            <AuctionTimer
+              v-if="isAuctionStarted && detailHouse.auctionEndDate"
+              :auctionStartDate="detailHouse.auctionStartDate"
+              :auctionEndDate="detailHouse.auctionEndDate"
+              @expired="onAuctionExpired"
+              class="auction-timer-large"
+              style="margin-bottom: 20px;"
+            />
+
+            <!-- Показываем дату начала если аукцион еще не начался -->
+            <div v-else-if="detailHouse.auctionStartDate && !isAuctionStarted" class="auction-start-info" style="margin-bottom: 20px; padding: 12px; background: #f5f5f5; border-radius: 8px;">
+              <div style="font-size: 14px; color: #666; margin-bottom: 4px;">Аукцион начнется:</div>
+              <div style="font-size: 16px; font-weight: 500; color: #333;">{{ formatAuctionDate(detailHouse.auctionStartDate) }}</div>
+            </div>
+
             <div class="price-info">
               <div class="price-row">
                 <span class="price-label">Стартовая цена:</span>
@@ -116,7 +132,7 @@
             </div>
 
             <!-- Форма для ставки -->
-            <div class="bid-form" v-if="isAuthenticated">
+            <div class="bid-form" v-if="isAuthenticated && !isAuctionExpired">
               <div v-if="!isShowInput">
                 <button @click="showBidInput" class="btn-bid">Сделать ставку</button>
               </div>
@@ -144,9 +160,16 @@
                 {{ isLoseText }}
               </div>
             </div>
-            <div v-else class="auth-required">
+            <div v-else-if="!isLoggedIn" class="auth-required">
               <p>Для участия в торгах необходимо авторизоваться</p>
               <button @click="$router.push('/')" class="btn-auth">Войти</button>
+            </div>
+            <div v-else-if="isAuctionExpired" class="auction-finished">
+              <p>Аукцион завершен</p>
+              <p v-if="detailHouse.winnerUser && detailHouse.winnerUser.username" class="winner-info">
+                Победитель: {{ detailHouse.winnerUser.username }}
+              </p>
+              <p class="final-price">Финальная цена: {{ formatNumber(detailHouse.finishPrice || currentPrice) }} ₸</p>
             </div>
           </div>
         </div>
@@ -167,6 +190,8 @@ import 'swiper/css/navigation';
 import noImg from '@/assets/no-img.jpg';
 import { mapState, mapGetters } from 'vuex';
 import { getImgUrl, formatNumber } from '@/utils/helpers';
+import AuctionTimer from '@/components/AuctionTimer.vue';
+import audioSrc from '@/assets/sound/alert.mp3';
 
 export default {
   name: "DetailHouse",
@@ -183,6 +208,8 @@ export default {
       isWin: false,
       isShowLose: false,
       isLoseText: 'Вас перебили!',
+      isAuctionExpired: false,
+      userParticipation: null,
       modules: [Navigation, Pagination],
     };
   },
@@ -190,11 +217,22 @@ export default {
   components: {
     Swiper,
     SwiperSlide,
+    AuctionTimer
   },
 
   computed: {
-    ...mapState(['detailHouse', 'isLoading']),
-    ...mapGetters(['isAuthenticated']),
+    ...mapState(['detailHouse', 'isLoading', 'user']),
+    ...mapGetters(['isAuthenticated', 'currentUser']),
+    isAuctionStarted() {
+      // Проверяем, начался ли аукцион
+      if (!this.detailHouse.auctionStartDate) return false;
+      const now = new Date();
+      const start = new Date(this.detailHouse.auctionStartDate);
+      return now >= start;
+    },
+    isLoggedIn() {
+      return this.isAuthenticated;
+    }
   },
 
   watch: {
@@ -223,6 +261,19 @@ export default {
         }
       },
       immediate: true
+    },
+    'detailHouse.userParticipation': {
+      handler(newVal) {
+        if (newVal) {
+          this.userParticipation = newVal;
+          this.isWin = newVal.isWinning;
+          this.isShowLose = newVal.isParticipating && !newVal.isWinning;
+          if (this.isShowLose) {
+            this.isLoseText = 'Вас перебили!';
+          }
+        }
+      },
+      immediate: true
     }
   },
 
@@ -240,6 +291,22 @@ export default {
       this.isShowInput = false;
       this.bidAmount = null;
     },
+    onAuctionExpired() {
+      this.isAuctionExpired = true;
+      this.isShowInput = false;
+      console.log('Аукцион завершен');
+    },
+
+    formatAuctionDate(dateString) {
+      if (!dateString) return '';
+      const date = new Date(dateString);
+      const day = date.getDate().toString().padStart(2, '0');
+      const month = (date.getMonth() + 1).toString().padStart(2, '0');
+      const year = date.getFullYear();
+      const hours = date.getHours().toString().padStart(2, '0');
+      const minutes = date.getMinutes().toString().padStart(2, '0');
+      return `${day}.${month}.${year} в ${hours}:${minutes}`;
+    },
 
     async placeBid() {
       if (!this.bidAmount || this.bidAmount <= this.currentPrice) {
@@ -247,17 +314,56 @@ export default {
         return;
       }
 
+      // Получаем данные пользователя из store или localStorage
+      let userData = this.currentUser;
+
+      if (!userData || !userData.id) {
+        // Пробуем загрузить из localStorage
+        const userInfoStr = localStorage.getItem('user-info');
+        if (userInfoStr) {
+          try {
+            userData = JSON.parse(userInfoStr);
+            console.log('Loaded user from localStorage:', userData);
+          } catch (e) {
+            console.error('Failed to parse user-info from localStorage:', e);
+          }
+        }
+      }
+
+      // Отладка
+      console.log('Current User:', this.currentUser);
+      console.log('User Data to use:', userData);
+      console.log('Store state:', this.$store.state);
+
+      if (!userData || !userData.id) {
+        alert('Необходимо авторизоваться для участия в торгах');
+        return;
+      }
+
       this.isShowInput = false;
 
-      // Отправляем ставку через Socket.IO
+      // Отправляем ставку через Socket.IO с информацией о пользователе
       const bidData = {
         id: this.detailHouse.id,
         price: this.bidAmount,
+        userId: userData.id,
+        username: userData.fullName || userData.email || 'Пользователь'
       };
+
+      console.log('Sending bid data:', bidData);
 
       this.$socket.emit('updatePrice', bidData);
       this.isWin = true;
+      this.isShowLose = false;
       this.currentPrice = this.bidAmount;
+
+      // Обновляем информацию об участии
+      this.userParticipation = {
+        isParticipating: true,
+        isWinning: true,
+        lastBidAmount: this.bidAmount,
+        participatedAt: new Date().toISOString()
+      };
     },
   },
 
@@ -277,9 +383,20 @@ export default {
     this.$socket.on('PriceUpdated', (response) => {
       if (this.detailHouse.id === response.id) {
         this.currentPrice = response.price;
-        this.isWin = false;
-        this.isShowLose = response.isShowLose || true;
-        this.isLoseText = response.isLoseText || 'Вас перебили!';
+        // Если пользователь участвовал и выигрывал, теперь его перебили
+        if (this.userParticipation && this.userParticipation.isParticipating) {
+          const wasWinning = this.isWin;
+          this.isWin = false;
+          this.isShowLose = true;
+          this.isLoseText = 'Вас перебили!';
+
+          // Воспроизвести звук если раньше лидировали (перебили ставку)
+          if (wasWinning) {
+            console.log('Вашу ставку перебили на детальной странице! Воспроизводим звук...');
+            let audio = new Audio(audioSrc);
+            audio.play();
+          }
+        }
       }
     });
   },

@@ -21,6 +21,8 @@ function mapRow(row) {
         countRoom: row.count_room,
         year: row.year,
         auctionStartDate: row.auction_start_date,
+        auctionEndDate: row.auction_end_date,
+        isActive: Boolean(row.is_active),
         viewsCount: row.views_count,
         userCount: row.user_count,
         userId: row.user_id,
@@ -82,6 +84,8 @@ export async function create(data) {
         countRoom,
         year,
         auctionStartDate,
+        auctionEndDate,
+        isActive = true,
         viewsCount = 0,
         userCount = 0,
         userId
@@ -105,6 +109,8 @@ export async function create(data) {
         count_room: countRoom,
         year: year || null,
         auction_start_date: auctionStartDate || null,
+        auction_end_date: auctionEndDate || null,
+        is_active: isActive,
         views_count: viewsCount,
         user_count: userCount,
         user_id: userId
@@ -133,6 +139,8 @@ export async function update(id, data) {
     if (data.countRoom !== undefined) updateData.count_room = data.countRoom;
     if (data.year !== undefined) updateData.year = data.year;
     if (data.auctionStartDate !== undefined) updateData.auction_start_date = data.auctionStartDate;
+    if (data.auctionEndDate !== undefined) updateData.auction_end_date = data.auctionEndDate;
+    if (data.isActive !== undefined) updateData.is_active = data.isActive;
     if (data.viewsCount !== undefined) updateData.views_count = data.viewsCount;
     if (data.userCount !== undefined) updateData.user_count = data.userCount;
 
@@ -152,4 +160,14 @@ export async function incrementViewsCount(id) {
 
 export async function incrementUserCount(id) {
     await db('houses').where({ id }).increment('user_count', 1);
+}
+
+export async function updateStatus(id, isActive, finishPrice) {
+    await db('houses')
+        .where({ id })
+        .update({
+            is_active: isActive,
+            finish_price: finishPrice,
+            updated_at: db.fn.now()
+        });
 }

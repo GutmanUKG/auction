@@ -16,6 +16,9 @@
         <router-link to="/admin/lots" class="nav-item">
           🏘️ Управление лотами
         </router-link>
+        <router-link to="/admin/users" class="nav-item">
+          👥 Управление пользователями
+        </router-link>
       </nav>
 
       <!-- Logout -->

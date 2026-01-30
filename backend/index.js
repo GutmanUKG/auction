@@ -10,6 +10,8 @@ import cors from 'cors';
 import { db } from './db.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import AuctionService from './services/auctionService.js';
+import * as lotParticipantModel from './models/lotParticipantModel.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -86,13 +88,43 @@ io.on('connection', (socket) => {
     // Обновление цены лота
     socket.on('updatePrice', async (data) => {
         try {
+            const { id, price, userId, username } = data;
+
+            console.log('Received updatePrice event:', { id, price, userId, username });
+
+            if (!userId) {
+                console.error('userId is required for updatePrice');
+                return;
+            }
+
+            // Получаем текущую информацию о лоте
+            const house = await db('houses').where({ id }).first();
+
+            if (!house) {
+                console.error('House not found:', id);
+                return;
+            }
+
+            // Обновляем цену, количество участников и победителя
             await db('houses')
-                .where({ id: data.id })
-                .update({ current_price: data.price });
+                .where({ id })
+                .update({
+                    current_price: price,
+                    winner_user: JSON.stringify({
+                        id: userId,
+                        username: username || 'Пользователь'
+                    })
+                });
+
+            console.log('House price updated, now saving participant...');
+
+            // Сохраняем участие пользователя в лоте
+            const participant = await lotParticipantModel.addParticipant(id, userId, price);
+            console.log('Participant saved:', participant);
 
             const resData = {
-                id: data.id,
-                price: data.price,
+                id: id,
+                price: price,
                 isNew: false,
                 isStart: true,
                 isLoseText: true,
@@ -104,6 +136,7 @@ io.on('connection', (socket) => {
             console.log('Price updated successfully!');
         } catch (err) {
             console.error('Error updating price:', err);
+            console.error('Error stack:', err.stack);
         }
     });
 
@@ -121,5 +154,21 @@ app.use((err, req, res, next) => {
     res.status(status).json({ status: false, message: err?.message || 'Internal error', ...payload });
 });
 
+// Инициализация сервиса аукционов
+const auctionService = new AuctionService(io);
+
+// Проверять истекшие аукционы каждые 5 секунд
+setInterval(() => {
+    auctionService.checkExpiredAuctions();
+}, 5000);
+
+console.log('Сервис автоматического завершения аукционов запущен (проверка каждые 5 секунд)');
+
 const PORT = process.env.PORT || 3000;
 httpServer.listen(PORT, () => console.log('API with Socket.IO on', PORT));
+
+
+
+
+// restart
+// restart 2

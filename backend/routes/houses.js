@@ -12,12 +12,13 @@ import {
 } from '../controllers/HouseController.js';
 import auth from '../middleware/auth.js';
 import adminAuth from '../middleware/adminAuth.js';
+import optionalAuth from '../middleware/optionalAuth.js';
 
 const router = express.Router();
 
-// Публичные маршруты
-router.get('/houses', getAllItems);
-router.get('/houses/:id', getItem);
+// Публичные маршруты (с опциональной аутентификацией для показа статуса участия)
+router.get('/houses', optionalAuth, getAllItems);
+router.get('/houses/:id', optionalAuth, getItem);
 
 // Защищенные маршруты (требуют авторизации)
 router.post('/houses', auth, addItem);

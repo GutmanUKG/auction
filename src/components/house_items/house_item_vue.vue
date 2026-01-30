@@ -34,8 +34,19 @@
           <span>Цена</span>
           {{formatNumber(currentPrice)}}
         </div>
+
+     
+
         <div class="item-footer">
-          <div class="item-time">
+           <!-- Добавить таймер (показывается только если аукцион начался) -->
+          <AuctionTimer
+            v-if="data.auctionStartDate && data.auctionEndDate"
+            :auctionStartDate="data.auctionStartDate"
+            :auctionEndDate="data.auctionEndDate"
+            @expired="onAuctionExpired"
+            class="item-timer"
+          />
+          <div class="item-time" v-else>
             <span>
               Начало:
             </span>
@@ -44,8 +55,11 @@
               <path d="M10 10.8333L12.9167 8.75" stroke="#333333" stroke-opacity="0.5" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
               <path d="M8.33325 1.66675H11.6666" stroke="#333333" stroke-opacity="0.5" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
-            {{date}}
+            {{data.auctionStartDate}}
           </div>
+
+         
+
           <div class="item-people">
              <span>
             Участвуют:
@@ -72,37 +86,31 @@
           </svg>
         </button>
         <!-- Если еще не участвует-->
-        <template  v-if="isStepSecond && stepCount < 1">
+        <template v-if="!participationStatus.isParticipating">
           <button class="btn w-100 btn-apply" @click="addCountPeople" >
             Участвовать
           </button>
         </template>
-        <!-- участвует-->
-        <template  v-else>
-          <button class="btn w-100 btn-apply" @click="place" v-if="isStart == false">
-            Сделать ставку
+
+        <!-- Если участвует и лидирует -->
+        <template v-else-if="participationStatus.isParticipating && participationStatus.isWinning">
+          <div class="btn w-100 btn-win">
+            Вы лидируете!
+          </div>
+        </template>
+
+        <!-- Если участвует, но не лидирует (перебили или еще не делал ставку) -->
+        <template v-else-if="participationStatus.isParticipating && !participationStatus.isWinning">
+          <button class="btn w-100" :class="hasMadeBid ? 'btn-lose' : 'btn-apply'" @click="place" v-if="!isShowInput">
+            {{ hasMadeBid ? 'Сделать ставку' : 'Сделать ставку' }}
           </button>
         </template>
 
-        <!--Участвует и делает ставку-->
-          <div class="d-flex flex-column" v-if="isShowLose && isStart" style="width: 100%;">
-            <template v-if="isLoseText">
-
-              <div class="btn  btn-lose" @click="upperPrice">
-                {{youLoseText}}
-              </div>
-            </template>
-          </div>
-          <div class="d-flex"  v-if="isShowInput">
-              <input type="text" name="price" @input="addPrice($event , data.id)">
-              <button class="btn btn-primary" @click="updatePrice">OK</button>
-          </div>
-
-        <template v-if="isStart && isWin == true">
-          <div class="btn  btn-win">
-            Ставка выигрывает!
-          </div>
-        </template>
+        <!--Поле ввода ставки-->
+        <div class="d-flex" v-if="isShowInput" style="width: 100%;">
+          <input type="text" name="price" @input="addPrice($event , data.id)">
+          <button class="btn btn-primary" @click="updatePrice">OK</button>
+        </div>
       </div>
     </div>
   </div>
@@ -115,12 +123,13 @@ import 'swiper/css'
 import 'swiper/css/pagination'
 import noImg from '@/assets/no-img.jpg'
 import { formatNumber as formatNum, getImgUrl as getImageUrl } from '@/utils/helpers';
+import AuctionTimer from '@/components/AuctionTimer.vue';
 
 import audioSrc  from '@/assets/sound/alert.mp3';
 export default {
   name: "house_item_vue",
 
-  components: { Swiper, SwiperSlide },
+  components: { Swiper, SwiperSlide, AuctionTimer },
   props: {
     data: {
       type: Object,
@@ -146,6 +155,9 @@ export default {
       isLoseText: false,
       isShowLose: false,
       isShowInput: false,
+      localIsParticipating: false,
+      localIsWinning: false,
+      hasMadeBid: false,
 
     }
   },
@@ -168,6 +180,11 @@ export default {
       this.stepCount++
       this.isWin = false
       this.activePeople += 1;
+
+      // Устанавливаем локальное состояние участия
+      this.localIsParticipating = true;
+      this.localIsWinning = false;
+
       this.dataSocket = {
         id: this.myId,
         count: this.activePeople,
@@ -198,17 +215,37 @@ export default {
     },
     updatePrice(){
       this.isShowInput = false
-      
+
       if(this.price > this.currentPrice){
         this.currentPrice = this.price;
+
+        // Получаем данные пользователя
+        let userData = this.$store.state.user;
+        if (!userData || !userData.id) {
+          const userInfoStr = localStorage.getItem('user-info');
+          if (userInfoStr) {
+            try {
+              userData = JSON.parse(userInfoStr);
+            } catch (e) {
+              console.error('Failed to parse user-info from localStorage:', e);
+            }
+          }
+        }
+
         this.dataSocket = {
           id: this.myId,
           price: this.price,
-    
+          userId: userData?.id,
+          username: userData?.username
         }
         this.$socket.emit('updatePrice', this.dataSocket)
         this.isWin = true
-        
+
+        // Обновляем локальное состояние - теперь лидируем
+        this.localIsParticipating = true;
+        this.localIsWinning = true;
+        this.hasMadeBid = true; // Отмечаем что пользователь сделал ставку
+
       }else{
         console.log('Ошибка число меньше')
       }
@@ -226,6 +263,10 @@ export default {
     },
     currentPriceDB(){
       return this.currentPrice = this.data.currentPrice || this.data.startPrice
+    },
+    onAuctionExpired() {
+      // Скрыть карточку или обновить состояние
+      this.$emit('auction-expired', this.data.id);
     }
 
   },
@@ -241,6 +282,48 @@ export default {
     isAuthenticated() {
       // Проверяем наличие токена и состояние в Vuex store
       return this.$store.getters.isAuthenticated || !!localStorage.getItem('token');
+    },
+    // Объединенный статус участия (локальное состояние имеет приоритет)
+    participationStatus() {
+      // Если локальное состояние установлено (пользователь взаимодействовал в этой сессии)
+      if (this.localIsParticipating) {
+        return {
+          isParticipating: true,
+          isWinning: this.localIsWinning
+        };
+      }
+      // Иначе используем данные из бэкенда
+      if (this.data.userParticipation && this.data.userParticipation.isParticipating) {
+        return {
+          isParticipating: true,
+          isWinning: this.data.userParticipation.isWinning
+        };
+      }
+      // Не участвует
+      return {
+        isParticipating: false,
+        isWinning: false
+      };
+    }
+  },
+  watch: {
+    'data.userParticipation': {
+      handler(newVal) {
+        if (newVal && newVal.isParticipating) {
+          // Синхронизируем локальное состояние с данными из бэкенда
+          this.localIsParticipating = true;
+          this.localIsWinning = newVal.isWinning;
+          this.hasMadeBid = true; // Если участвует, значит делал ставку
+
+          this.isWin = newVal.isWinning;
+          this.isShowLose = !newVal.isWinning;
+          if (!newVal.isWinning) {
+            this.isLoseText = true;
+          }
+        }
+      },
+      immediate: true,
+      deep: true
     }
   },
   mounted(){
@@ -252,18 +335,25 @@ export default {
     });
     this.$socket.on('PriceUpdated', (response) => { // Обработчик события обновления счетчика
       if(this.myId === response.id){
-       this.currentPrice = response.price
+        this.currentPrice = response.price
         this.isWin = false
         this.isStepSecond = response.isNew
         this.isStepSecond = response.isStart
         this.isLoseText = response.isLoseText
         this.isShowLose = response.isShowLose
-        if(this.isStart && this.isWin == true){
-          console.log('play')
-          let audio = new Audio(this.audioSrc);
-          audio.play()
-        }
 
+        // Если пользователь участвует, то его перебили (кто-то другой сделал ставку)
+        if(this.localIsParticipating) {
+          const wasWinning = this.localIsWinning;
+          this.localIsWinning = false; // Больше не лидируем
+
+          // Воспроизвести звук если раньше лидировали (перебили ставку)
+          if(wasWinning) {
+            console.log('Вашу ставку перебили! Воспроизводим звук...')
+            let audio = new Audio(this.audioSrc);
+            audio.play()
+          }
+        }
       }
     });
   }
@@ -291,7 +381,8 @@ export default {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    min-height: 600px;
+    min-height: 620px;
+    max-height: 620px;
   }
   .item_slider{
     display: flex;
@@ -359,6 +450,32 @@ export default {
       font-size: 20px;
       line-height: 20px;
       color: #333333;
+    }
+    .participation-status {
+      margin-bottom: 12px;
+      .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 12px;
+        border-radius: 6px;
+        font-family: 'Inter', sans-serif;
+        font-style: normal;
+        font-weight: 500;
+        font-size: 13px;
+        line-height: 18px;
+        svg {
+          flex-shrink: 0;
+        }
+      }
+      .status-winning {
+        background: rgba(0, 187, 97, 0.15);
+        color: #00BD62;
+      }
+      .status-outbid {
+        background: rgba(229, 83, 0, 0.15);
+        color: #E55300;
+      }
     }
     .item-footer{
       display: flex;

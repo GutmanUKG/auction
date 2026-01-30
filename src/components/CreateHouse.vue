@@ -163,6 +163,17 @@
               v-model="formData.auctionStartDate"
             >
           </div>
+
+          <div class="form-group">
+            <label for="auctionEndDate">Дата и время окончания аукциона *</label>
+            <input
+              type="datetime-local"
+              id="auctionEndDate"
+              v-model="formData.auctionEndDate"
+              required
+            >
+            <small class="form-hint">Обязательное поле. Укажите дату и время окончания торгов.</small>
+          </div>
         </div>
 
         <div class="form-section">
@@ -266,6 +277,7 @@ export default {
         countRoom: null,
         year: null,
         auctionStartDate: '',
+        auctionEndDate: '',
         mainImage: '',
         images: []
       },

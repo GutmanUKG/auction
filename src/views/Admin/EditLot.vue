@@ -214,6 +214,34 @@
           </div>
         </div>
 
+        <!-- Даты аукциона -->
+        <div class="form-section">
+          <h2>Даты аукциона</h2>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="auctionStartDate">Дата и время начала аукциона</label>
+              <input
+                type="datetime-local"
+                id="auctionStartDate"
+                v-model="localAuctionStartDate"
+                class="form-control"
+              >
+            </div>
+
+            <div class="form-group">
+              <label for="auctionEndDate">Дата и время окончания аукциона *</label>
+              <input
+                type="datetime-local"
+                id="auctionEndDate"
+                v-model="localAuctionEndDate"
+                class="form-control"
+                required
+              >
+            </div>
+          </div>
+        </div>
+
         <!-- Статус -->
         <div class="form-section">
           <h2>Статус</h2>
@@ -274,6 +302,8 @@ export default {
       loadError: null,
       isSaving: false,
       saveError: null,
+      localAuctionStartDate: '',
+      localAuctionEndDate: '',
       saveSuccess: false,
       uploadingMain: false,
       uploadingAdditional: false
@@ -314,6 +344,14 @@ export default {
             images: lot.images || [],
             isActive: lot.isActive !== undefined ? lot.isActive : true
           }
+
+          // Даты аукциона
+          if (lot.auctionStartDate) {
+            this.localAuctionStartDate = this.formatDateForInput(lot.auctionStartDate)
+          }
+          if (lot.auctionEndDate) {
+            this.localAuctionEndDate = this.formatDateForInput(lot.auctionEndDate)
+          }
         }
       } catch (error) {
         console.error('Error loading lot:', error)
@@ -328,7 +366,13 @@ export default {
       this.saveSuccess = false
 
       try {
-        await axios.put(`/houses/${this.lotId}`, this.formData)
+        const updateData = {
+          ...this.formData,
+          auctionStartDate: this.localAuctionStartDate ? new Date(this.localAuctionStartDate).toISOString() : null,
+          auctionEndDate: this.localAuctionEndDate ? new Date(this.localAuctionEndDate).toISOString() : null
+        }
+
+        await axios.put(`/houses/${this.lotId}`, updateData)
 
         this.saveSuccess = true
 
@@ -409,6 +453,16 @@ export default {
       if (!filename) return ''
       if (filename.startsWith('http')) return filename
       return `http://localhost:3000/uploads/${filename}`
+    },
+    formatDateForInput(dateString) {
+      if (!dateString) return ''
+      const date = new Date(dateString)
+      const year = date.getFullYear()
+      const month = String(date.getMonth() + 1).padStart(2, '0')
+      const day = String(date.getDate()).padStart(2, '0')
+      const hours = String(date.getHours()).padStart(2, '0')
+      const minutes = String(date.getMinutes()).padStart(2, '0')
+      return `${year}-${month}-${day}T${hours}:${minutes}`
     }
   }
 }

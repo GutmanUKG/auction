@@ -33,6 +33,12 @@ const routes = [
     meta: { requiresAuth: true, requiresAdmin: true }
   },
   {
+    path: '/admin/users',
+    name: 'AdminUsers',
+    component: () => import('../views/Admin/AdminUsers.vue'),
+    meta: { requiresAuth: true, requiresAdmin: true }
+  },
+  {
     path: '/about',
     name: 'about',
     // route level code-splitting

@@ -128,12 +128,15 @@ export default {
       return formatNumber(price, '₸')
     },
     isLotActive(lot) {
-      // Лот считается активным, если он был создан менее 30 дней назад
-      // или если есть текущая цена (были ставки)
-      const thirtyDaysAgo = new Date()
-      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
-      const createdAt = new Date(lot.createdAt)
-      return lot.currentPrice || createdAt > thirtyDaysAgo
+      // Проверяем флаг активности из БД
+      if (!lot.isActive) return false
+
+      // Проверяем не истекло ли время аукциона
+      if (lot.auctionEndDate && new Date(lot.auctionEndDate) < new Date()) {
+        return false
+      }
+
+      return true
     },
     previousPage() {
       if (this.currentPage > 1) {
@@ -150,9 +153,9 @@ export default {
       this.error = null
 
       try {
-        const response = await axios.get('/houses')
+        const response = await axios.get('/admin/houses')
 
-        this.lots = response.data || []
+        this.lots = response.data.houses || []
       } catch (error) {
         console.error('Error loading lots:', error)
         this.error = 'Не удалось загрузить лоты'
